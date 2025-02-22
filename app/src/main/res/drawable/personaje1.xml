@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Personaje Phantom-->
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/phantom1" android:duration="100" />
+    <item android:drawable="@drawable/phantom2" android:duration="100" />
+    <item android:drawable="@drawable/phantom3" android:duration="100" />
+    <item android:drawable="@drawable/phantom4" android:duration="100" />
+</animation-list>
