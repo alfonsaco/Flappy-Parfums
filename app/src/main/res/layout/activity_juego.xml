@@ -3,9 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:background="#000"
+    tools:context=".JuegoActivity">
 
     <ImageView
         android:id="@+id/imageView"
@@ -21,37 +22,14 @@
         app:srcCompat="@drawable/fondo" />
 
     <Button
-        android:id="@+id/btnPlay"
+        android:id="@+id/btnReset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="PLAY"
+        android:text="RESET"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.6" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="170dp"
-        android:text="FLAPPY PARFUMS"
-        android:textColor="#EEE"
-        android:textSize="25sp"
-        app:layout_constraintBottom_toTopOf="@+id/btnPlay"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageView
-        android:id="@+id/imgPersonaje"
-        android:layout_width="100dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="50dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnPlay"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:background="@drawable/personaje1"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintVertical_bias="0.79" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
