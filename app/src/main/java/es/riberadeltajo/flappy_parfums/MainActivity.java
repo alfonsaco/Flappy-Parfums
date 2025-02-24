@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -18,7 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 public class MainActivity extends AppCompatActivity {
 
     // boton de prueba
-    private Button btnPlay;
+    private ImageView btnJugar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,14 +25,24 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        btnPlay=findViewById(R.id.btnPlay);
+        btnJugar=findViewById(R.id.btnJugar);
 
-        btnPlay.setOnClickListener(new View.OnClickListener() {
+        // Animación de Click en el botón
+        AnimatorSet set=new AnimatorSet();
+        ObjectAnimator pulsarBoton=ObjectAnimator.ofFloat(btnJugar, "translationY", 10, 0);
+        pulsarBoton.setDuration(100);
+        set.play(pulsarBoton);
+
+        btnJugar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(MainActivity.this, JuegoActivity.class);
                 startActivity(intent);
+                // Transición entre las actividades
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+
+                // Comenzaar animación del botón
+                set.start();
             }
         });
 
@@ -50,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         // Agregar frames del personaje
         AnimationDrawable animacionColonia;
         ImageView personaje=(ImageView) findViewById(R.id.imgPersonaje);
-        personaje.setBackgroundResource(R.drawable.personaje1);
+        personaje.setBackgroundResource(R.drawable.personaje_phantom);
 
         animacionColonia=(AnimationDrawable) personaje.getBackground();
         animacionColonia.start();
