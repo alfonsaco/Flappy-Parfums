@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/azzaro1" android:duration="100" />
+    <item android:drawable="@drawable/azzaro2" android:duration="100" />
+    <item android:drawable="@drawable/azzaro3" android:duration="100" />
+    <item android:drawable="@drawable/azzaro4" android:duration="100" />
+    <item android:drawable="@drawable/azzaro5" android:duration="100" />
+</animation-list>

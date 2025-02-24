@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -18,7 +17,6 @@ import androidx.core.view.WindowInsetsCompat;
 public class MainActivity extends AppCompatActivity {
 
     // boton de prueba
-    private Button btnPlay;
     private ImageView btnJugar;
 
     @Override
@@ -61,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         // Agregar frames del personaje
         AnimationDrawable animacionColonia;
         ImageView personaje=(ImageView) findViewById(R.id.imgPersonaje);
-        personaje.setBackgroundResource(R.drawable.personaje1);
+        personaje.setBackgroundResource(R.drawable.personaje_phantom);
 
         animacionColonia=(AnimationDrawable) personaje.getBackground();
         animacionColonia.start();
