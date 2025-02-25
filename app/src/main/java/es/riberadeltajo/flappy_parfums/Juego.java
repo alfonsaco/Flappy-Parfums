@@ -1,6 +1,7 @@
 package es.riberadeltajo.flappy_parfums;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -26,8 +27,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private final int DURACION_FRAME = 100; // ms por frame
     private float posPersonajeY;
     private float velY = 0;
-    private final float GRAVEDAD = 3f;
-    private final float SALTO = -30;
+    private float GRAVEDAD = 3f;
+    private float SALTO = -30;
 
     // Suelo
     private Bitmap suelo;
@@ -38,7 +39,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
 
     private ArrayList<Tuberia> tuberias;
-    private final float TIEMPO_ENTRE_TUBERIAS = 4000;
+    private float TIEMPO_ENTRE_TUBERIAS = 2500;
     private long ultimoSpawn = 0;
     private boolean gameOver = false;
 
@@ -48,9 +49,24 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
     private int score = 0;
 
+    private float factorVelocidad;
+
     public Juego(Context context) {
         super(context);
         getHolder().addCallback(this);
+
+        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+        float densidadPantalla = metrics.density;  // Factor de densidad (dpi base = 160)
+        int anchoPantalla = metrics.widthPixels;   // Ancho de pantalla en píxeles
+        int altoPantalla = metrics.heightPixels;   // Alto de pantalla en píxeles
+
+        factorVelocidad = (densidadPantalla + anchoPantalla / 2000f) / 4f;
+
+        // Aplicar a variables del juego
+        velSuelo = 7 * factorVelocidad;
+        GRAVEDAD = 3f * factorVelocidad;
+        SALTO = -30 * factorVelocidad;
+        TIEMPO_ENTRE_TUBERIAS = (int) (2500 / factorVelocidad);
 
         // Hacer transparente el fondo del SurfaceView si deseas ver el fondo del layout
         setZOrderOnTop(true);
@@ -141,6 +157,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         velY += GRAVEDAD;
         posPersonajeY += velY;
 
+
+
         long ahora = System.currentTimeMillis();
         if (ahora - ultimoCambioFrame >= DURACION_FRAME) {
             frameIndex = (frameIndex + 1) % framesPersonaje.length;
@@ -174,6 +192,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         generarTuberias();
         actualizarTuberias();
         chequearColisiones();
+
+        for (Tuberia t : tuberias) {
+            t.setVelocidad(velSuelo); // Ajusta la velocidad de desplazamiento
+            t.actualizar();
+        }
 
 
     }
@@ -271,7 +294,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     // Detectar toque en pantalla para hacer saltar al personaje
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        if (!gameOver && event.getAction() == MotionEvent.ACTION_DOWN) {
             velY = SALTO; // El personaje salta
             return true;
         }

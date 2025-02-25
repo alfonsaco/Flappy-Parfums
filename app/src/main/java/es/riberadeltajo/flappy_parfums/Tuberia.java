@@ -27,6 +27,7 @@ public class Tuberia {
     private Rect rectAbajo;
     private static final float FACTOR_ESCALA = 1.3f;
     private boolean puntoSumado = false;
+    private float velocidadTuberia;
 
     private static final Random random = new Random();
 
@@ -148,4 +149,10 @@ public class Tuberia {
     public float getAncho() {
         return ancho;
     }
+    public void setVelocidad(float velocidad) {
+        this.velocidadTuberia = velocidad;
+    }
+
+
+
 }
