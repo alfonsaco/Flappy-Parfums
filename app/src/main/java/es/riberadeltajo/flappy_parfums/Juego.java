@@ -1,20 +1,23 @@
 package es.riberadeltajo.flappy_parfums;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.ArrayList;
+
 public class Juego extends SurfaceView implements SurfaceHolder.Callback {
-
-
     private BucleJuego bucle;
 
     // Personaje
@@ -24,8 +27,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private final int DURACION_FRAME = 100; // ms por frame
     private float posPersonajeY;
     private float velY = 0;
-    private final float GRAVEDAD = 3f;
-    private final float SALTO = -34;
+    private float GRAVEDAD = 3f;
+    private float SALTO = -30;
 
     // Suelo
     private Bitmap suelo;
@@ -34,12 +37,25 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private float velSuelo = 7f; // Velocidad de desplazamiento del suelo
     private float sueloY;
 
+
+    private ArrayList<Tuberia> tuberias;
+    private float TIEMPO_ENTRE_TUBERIAS = 600f;
+    private float ultimaTuberiaX  = 0;
+    private boolean gameOver = false;
+
     private int personajeAncho;
     private int personajeAlto;
+    private Rect rectPersonaje;
+
+    private int score = 0;
+
+    private float factorVelocidad;
 
     public Juego(Context context) {
         super(context);
         getHolder().addCallback(this);
+
+
 
         // Hacer transparente el fondo del SurfaceView si deseas ver el fondo del layout
         setZOrderOnTop(true);
@@ -52,11 +68,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom4);
 
         // Escalar cada frame (por ejemplo, a 1/10 de su tamaño original)
-        for (int i = 0; i < framesPersonaje.length; i++) {
-            Bitmap original = framesPersonaje[i];
-            int newWidth = original.getWidth() / 10;
-            int newHeight = original.getHeight() / 10;
-            framesPersonaje[i] = Bitmap.createScaledBitmap(original, newWidth, newHeight, true);
+        for (int i=0; i<framesPersonaje.length; i++) {
+            framesPersonaje[i] = Bitmap.createScaledBitmap(framesPersonaje[i],
+                    framesPersonaje[i].getWidth() / 11,
+                    framesPersonaje[i].getHeight() / 11,
+                    true);
         }
         personajeAncho = framesPersonaje[0].getWidth();
         personajeAlto = framesPersonaje[0].getHeight();
@@ -68,16 +84,36 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         posPersonajeY = 0;
         posSuelo1 = 0;
         posSuelo2 = suelo.getWidth(); // El segundo suelo va a continuación del primero
+
+        tuberias = new ArrayList<>();
+        rectPersonaje = new Rect();
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        // Cuando la superficie esté lista, calcular posición inicial del personaje en el centro vertical
+        int pantallaAncho = getWidth();
         int pantallaAlto = getHeight();
-        posPersonajeY = (pantallaAlto - personajeAlto) / 2f;
 
-        // Posicionar el suelo en la parte inferior
-        sueloY = getHeight() - suelo.getHeight();
+        // Escalar el suelo al ancho de pantalla manteniendo proporción
+        int anchoOriginal = suelo.getWidth();
+        int altoOriginal  = suelo.getHeight();
+        float factorEscala = (float)pantallaAncho / (float)anchoOriginal;
+
+        int nuevoAncho = pantallaAncho;
+        int nuevoAlto  = (int)(altoOriginal * factorEscala);
+
+        // Reemplazamos 'suelo' por la versión escalada
+        suelo = Bitmap.createScaledBitmap(suelo, nuevoAncho, nuevoAlto, true);
+
+        // Ajustar Y del suelo según su nueva altura
+        sueloY = pantallaAlto - suelo.getHeight();
+
+        // Ajustar posSuelo1 y posSuelo2 con el nuevo ancho
+        posSuelo1 = 0;
+        posSuelo2 = suelo.getWidth(); // El segundo suelo va al final del primero
+
+        // Posicionar el personaje en el centro vertical
+        posPersonajeY = (pantallaAlto - personajeAlto) / 2f;
 
         // Iniciar el bucle
         bucle = new BucleJuego(holder, this);
@@ -101,55 +137,152 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    // Lógica de actualización: se llama cada frame en el hilo
     public void actualizar() {
+        if (gameOver) {
+            return;
+        }
 
-        long ahora = SystemClock.uptimeMillis();
+        // Gravedad
+        velY += GRAVEDAD;
+        posPersonajeY += velY;
+
+
+
+        long ahora = System.currentTimeMillis();
         if (ahora - ultimoCambioFrame >= DURACION_FRAME) {
             frameIndex = (frameIndex + 1) % framesPersonaje.length;
             ultimoCambioFrame = ahora;
         }
 
-        velY += GRAVEDAD;
-        posPersonajeY += velY;
-
-        float limiteInferior = getHeight() - personajeAlto;
-        if (posPersonajeY > limiteInferior) {
-            posPersonajeY = limiteInferior;
-            velY = 0;
-        }
-
-        // Evitar que salga por arriba
-        if (posPersonajeY < 0) {
+        // Si quieres que también pierda al tocar el techo:
+        if (posPersonajeY <= 0) {
             posPersonajeY = 0;
-            velY = 0;
+            gameOver = true;
         }
 
-        // 2. Mover suelos (scroll infinito)
+
+        float limiteInferior = getHeight() - suelo.getHeight() - personajeAlto;
+        if (posPersonajeY >= limiteInferior) {
+            posPersonajeY = limiteInferior;
+            gameOver = true;
+        }
+
+        //Movimiento del suelo
         posSuelo1 -= velSuelo;
         posSuelo2 -= velSuelo;
-        // Cuando el primer suelo salga de la pantalla, lo ponemos detrás del segundo
         if (posSuelo1 + suelo.getWidth() < 0) {
             posSuelo1 = posSuelo2 + suelo.getWidth();
         }
-        // Y viceversa
         if (posSuelo2 + suelo.getWidth() < 0) {
             posSuelo2 = posSuelo1 + suelo.getWidth();
         }
+
+        //Generar las tuberias y actualizarlas
+        generarTuberias();
+        actualizarTuberias();
+        chequearColisiones();
+        chequearPasoTuberias();
+
+        for (Tuberia t : tuberias) {
+            t.setVelocidad(velSuelo); // Ajusta la velocidad de desplazamiento
+            t.actualizar();
+        }
+
+
     }
 
     public void renderizar(Canvas canvas) {
         if (canvas == null) return;
 
         canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
-
+        //dibujar el personaje
         float personajeX = 100;
         Bitmap frameActual = framesPersonaje[frameIndex];
         canvas.drawBitmap(frameActual, personajeX, posPersonajeY, null);
 
-        // DIBUJAR SUELO (dos copias para scroll infinito)
+        for (Tuberia t : tuberias) {
+            t.dibujar(canvas);
+        }
+
+        //dibujar el suelo
         renderizarSuelo(canvas);
+
+        Paint paint = new Paint();
+        paint.setColor(Color.WHITE);
+        paint.setTextSize(70);
+
+        // Dibuja en la parte superior izquierda
+        canvas.drawText( ""+score,500 , 300, paint);
+
     }
+
+    private void generarTuberias() {
+        float anchoPantalla = getWidth();
+
+        // Si no hay tuberías, genera la primera fuera de la pantalla
+        if (tuberias.isEmpty()) {
+            tuberias.add(new Tuberia(getContext(), anchoPantalla + TIEMPO_ENTRE_TUBERIAS, sueloY, velSuelo, 350));
+            return;
+        }
+
+        // Obtener la última tubería generada
+        Tuberia ultimaTuberia = tuberias.get(tuberias.size() - 1);
+
+        // Verificar si la última tubería ya avanzó lo suficiente para agregar una nueva
+        if (ultimaTuberia.getX() + ultimaTuberia.getAncho() < anchoPantalla) {
+            float nuevaPosX = ultimaTuberia.getX() + ultimaTuberia.getAncho() + TIEMPO_ENTRE_TUBERIAS;
+            tuberias.add(new Tuberia(getContext(), nuevaPosX, sueloY, velSuelo, 350));
+        }
+    }
+
+
+
+    private void actualizarTuberias() {
+        for (int i = tuberias.size() - 1; i >= 0; i--) {
+            Tuberia t = tuberias.get(i);
+            t.actualizar();
+            if (t.fueraDePantalla()) {
+                tuberias.remove(i);
+            }
+        }
+    }
+
+
+    private void chequearColisiones() {
+        // Crear rect del personaje
+        float personajeX = 100;
+        rectPersonaje.set(
+                (int) personajeX,
+                (int) posPersonajeY,
+                (int) (personajeX + personajeAncho),
+                (int) (posPersonajeY + personajeAlto)
+        );
+
+        // Revisar colisión con tuberías
+        for (Tuberia t : tuberias) {
+            if (t.colisionaCon(rectPersonaje)) {
+                gameOver = true;
+                break;
+            }
+        }
+
+
+    }
+    private void chequearPasoTuberias() {
+        float personajeX = 100; // Donde dibujas al personaje
+        for (Tuberia t : tuberias) {
+            float tuberiaXFinal = t.getX() + t.getAncho();
+            if (!t.isPuntoSumado() && tuberiaXFinal < personajeX) {
+                score++;
+                t.setPuntoSumado(true);
+                break; // Detenemos la búsqueda después de sumar un punto
+            }
+        }
+    }
+
+
+
+
 
     private void renderizarSuelo(Canvas canvas) {
         canvas.drawBitmap(suelo, posSuelo1, sueloY, null);
@@ -159,7 +292,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     // Detectar toque en pantalla para hacer saltar al personaje
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        if (!gameOver && event.getAction() == MotionEvent.ACTION_DOWN) {
             velY = SALTO; // El personaje salta
             return true;
         }
