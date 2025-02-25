@@ -11,17 +11,22 @@ import com.google.android.material.tabs.TabLayout;
 
 public class BucleJuego extends Thread {
 
-    private JuegoActivity juego;
+    private Juego juego;
     private SurfaceHolder surfaceHolder;
-    public boolean JuegoEnEjecucion=true;
+
     public final static int MAX_FPS=30;
     public final static int TIEMPO_FRAME = 1000 / MAX_FPS;
     private final static int MAX_FRAMES_SALTADOS = 5;
+    private boolean enEjecucion = false;
 
-    BucleJuego(SurfaceHolder sh, JuegoActivity s){
+    BucleJuego(SurfaceHolder sh, Juego s){
         juego=s;
         surfaceHolder =sh;
     }
+    public void setEnEjecucion(boolean enEjecucion) {
+        this.enEjecucion = enEjecucion;
+    }
+
     public void run(){
         Canvas canvas;
         Log.d(TAG,"Comienza el bucle");
@@ -32,7 +37,7 @@ public class BucleJuego extends Thread {
         int framesASaltar;
         tiempoDormir=0;
 
-        while(JuegoEnEjecucion) {
+        while(enEjecucion) {
             canvas=null;
             try {
                 canvas= this.surfaceHolder.lockCanvas();
@@ -40,8 +45,8 @@ public class BucleJuego extends Thread {
                 synchronized (surfaceHolder) {
                     tiempoComienzo = System.currentTimeMillis();
                     framesASaltar=0;
-                    //juego.actualizar();
-                    //juego.renderizar(canvas);
+                    juego.actualizar();
+                    juego.renderizar(canvas);
                     tiempoDiferencia= System.currentTimeMillis() - tiempoComienzo;
                     tiempoDormir = (int) (TIEMPO_FRAME-tiempoDiferencia);
 
@@ -52,7 +57,7 @@ public class BucleJuego extends Thread {
                     }
 
                     while (tiempoDormir<0 && framesASaltar > MAX_FRAMES_SALTADOS ){
-                        //juego.actualizar();
+                        juego.actualizar();
                         tiempoDormir += TIEMPO_FRAME;
                         framesASaltar++;
                     }
@@ -68,6 +73,7 @@ public class BucleJuego extends Thread {
         }
     }
 
-    // Se para el juego
-    public void fin(){JuegoEnEjecucion=false;}
+    public void fin() {
+        enEjecucion = false;
+    }
 }
