@@ -4,6 +4,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Comenzaar animación del botón
                 animarBoton(btnJugar);
+                reproducirAudio(R.raw.start);
             }
         });
 
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // Animación botón
                 animarBoton(btnPersonaje);
+                reproducirAudio(R.raw.start);
             }
         });
 
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         set.start();
     }
 
+    // Método para las animaciones del botón
     private void animarBoton(ImageView idBoton) {
         // Animación de Click en el botón
         AnimatorSet set=new AnimatorSet();
@@ -87,5 +91,13 @@ public class MainActivity extends AppCompatActivity {
 
         set.play(pulsarBoton);
         set.start();
+    }
+
+    // Método para reproducir sonidos
+    public void reproducirAudio(int idAudio) {
+        MediaPlayer audio=MediaPlayer.create(this, idAudio);
+        if(audio != null) {
+            audio.start();
+        }
     }
 }

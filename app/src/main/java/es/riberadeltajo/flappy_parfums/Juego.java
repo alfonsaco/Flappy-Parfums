@@ -10,6 +10,8 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -134,14 +136,21 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             ultimoCambioFrame = ahora;
         }
 
+        /*
+            MUERTES DEL PERSONAJE
+         */
+        // Muerte por tocar el techo
         if (posPersonajeY <= 0) {
             posPersonajeY = 0;
             gameOver = true;
+            reproducirAudio(R.raw.morir);
         }
+        // Muerte por tocar el suelo
         float limiteInferior = getHeight() - suelo.getHeight() - personajeAlto;
         if (posPersonajeY >= limiteInferior) {
             posPersonajeY = limiteInferior;
             gameOver = true;
+            reproducirAudio(R.raw.morir);
         }
 
         // Movimiento del suelo
@@ -254,9 +263,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         if (invisibilidadTuberiasRestantes > 0) return;
 
         // Crear el rectángulo del personaje (ya se actualizó en actualizar())
+        // Muerte por chocar con la tubería
         for (Tuberia t : tuberias) {
             if (t.colisionaCon(rectPersonaje)) {
                 gameOver = true;
+                reproducirAudio(R.raw.morir);
                 break;
             }
         }
@@ -281,6 +292,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             if (!t.isPuntoSumado() && tuberiaXFinal < personajeX) {
                 score++;
                 t.setPuntoSumado(true);
+                reproducirAudio(R.raw.point);
+
                 if (invisibilidadTuberiasRestantes > 0) {
                     invisibilidadTuberiasRestantes--;
                 }
@@ -298,12 +311,23 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawBitmap(suelo, posSuelo2, sueloY, null);
     }
 
+    // Método para que al pulsar en la pantalla, la colonia salte
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!gameOver && event.getAction() == MotionEvent.ACTION_DOWN) {
             velY = SALTO;
+            reproducirAudio(R.raw.spray);
+
             return true;
         }
         return super.onTouchEvent(event);
+    }
+
+    // Método para reproducir audio
+    public void reproducirAudio(int idAudio) {
+        MediaPlayer audio=MediaPlayer.create(getContext(), idAudio);
+        if(audio != null) {
+            audio.start();
+        }
     }
 }

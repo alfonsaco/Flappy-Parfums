@@ -57,18 +57,18 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="140dp"
-        android:text="ALFONSO | JOSÉ | GUILLERMO"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/upheavtt"
+        android:shadowColor="#000"
+        android:shadowDx="0"
+        android:shadowDy="4"
+        android:shadowRadius="2"
+        android:text="ALFONSO | JOSÉ | GUILLERMO"
         android:textColor="#FFF"
         android:textSize="18sp"
-        android:shadowColor="#000"
-        android:shadowDy="4"
-        android:shadowDx="0"
-        android:shadowRadius="2"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/btnPersonaje"
