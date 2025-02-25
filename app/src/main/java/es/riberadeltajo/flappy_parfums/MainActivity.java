@@ -4,6 +4,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -18,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
 
     // boton de prueba
     private ImageView btnJugar;
+    private ImageView btnPersonaje;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,12 +28,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btnJugar=findViewById(R.id.btnJugar);
-
-        // Animación de Click en el botón
-        AnimatorSet set=new AnimatorSet();
-        ObjectAnimator pulsarBoton=ObjectAnimator.ofFloat(btnJugar, "translationY", 10, 0);
-        pulsarBoton.setDuration(100);
-        set.play(pulsarBoton);
+        btnPersonaje=findViewById(R.id.btnPersonaje);
 
         btnJugar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -42,7 +39,17 @@ public class MainActivity extends AppCompatActivity {
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 
                 // Comenzaar animación del botón
-                set.start();
+                animarBoton(btnJugar);
+                reproducirAudio(R.raw.start);
+            }
+        });
+
+        btnPersonaje.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Animación botón
+                animarBoton(btnPersonaje);
+                reproducirAudio(R.raw.start);
             }
         });
 
@@ -73,5 +80,24 @@ public class MainActivity extends AppCompatActivity {
 
         set.play(volar);
         set.start();
+    }
+
+    // Método para las animaciones del botón
+    private void animarBoton(ImageView idBoton) {
+        // Animación de Click en el botón
+        AnimatorSet set=new AnimatorSet();
+        ObjectAnimator pulsarBoton=ObjectAnimator.ofFloat(idBoton, "translationY", 10, 0);
+        pulsarBoton.setDuration(100);
+
+        set.play(pulsarBoton);
+        set.start();
+    }
+
+    // Método para reproducir sonidos
+    public void reproducirAudio(int idAudio) {
+        MediaPlayer audio=MediaPlayer.create(this, idAudio);
+        if(audio != null) {
+            audio.start();
+        }
     }
 }

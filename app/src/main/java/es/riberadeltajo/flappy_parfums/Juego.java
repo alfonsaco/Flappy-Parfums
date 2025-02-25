@@ -9,11 +9,16 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.media.MediaPlayer;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import java.util.ArrayList;
 
@@ -131,14 +136,21 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             ultimoCambioFrame = ahora;
         }
 
+        /*
+            MUERTES DEL PERSONAJE
+         */
+        // Muerte por tocar el techo
         if (posPersonajeY <= 0) {
             posPersonajeY = 0;
             gameOver = true;
+            reproducirAudio(R.raw.morir);
         }
+        // Muerte por tocar el suelo
         float limiteInferior = getHeight() - suelo.getHeight() - personajeAlto;
         if (posPersonajeY >= limiteInferior) {
             posPersonajeY = limiteInferior;
             gameOver = true;
+            reproducirAudio(R.raw.morir);
         }
 
         // Movimiento del suelo
@@ -185,10 +197,16 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
         renderizarSuelo(canvas);
 
+        // Cambiar la fuente del contador de puntos
+        Typeface typeface= ResourcesCompat.getFont(getContext(), R.font.numbers);
+        paint.setTypeface(typeface);
+
         // Mostrar el puntaje
         paint.setColor(Color.WHITE);
-        paint.setTextSize(70);
-        canvas.drawText("" + score, 500, 300, paint);
+        paint.setTextSize(120);
+        // Sombra de la fuente
+        paint.setShadowLayer(1, 10, 10, Color.BLACK);
+        canvas.drawText("" + score, 500, 350, paint);
 
         // Dibujar el personaje con opacidad reducida si el power-up está activo
         Bitmap frameActual = framesPersonaje[frameIndex];
@@ -245,9 +263,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         if (invisibilidadTuberiasRestantes > 0) return;
 
         // Crear el rectángulo del personaje (ya se actualizó en actualizar())
+        // Muerte por chocar con la tubería
         for (Tuberia t : tuberias) {
             if (t.colisionaCon(rectPersonaje)) {
                 gameOver = true;
+                reproducirAudio(R.raw.morir);
                 break;
             }
         }
@@ -272,6 +292,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             if (!t.isPuntoSumado() && tuberiaXFinal < personajeX) {
                 score++;
                 t.setPuntoSumado(true);
+                reproducirAudio(R.raw.point);
+
                 if (invisibilidadTuberiasRestantes > 0) {
                     invisibilidadTuberiasRestantes--;
                 }
@@ -289,12 +311,23 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawBitmap(suelo, posSuelo2, sueloY, null);
     }
 
+    // Método para que al pulsar en la pantalla, la colonia salte
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!gameOver && event.getAction() == MotionEvent.ACTION_DOWN) {
             velY = SALTO;
+            reproducirAudio(R.raw.spray);
+
             return true;
         }
         return super.onTouchEvent(event);
+    }
+
+    // Método para reproducir audio
+    public void reproducirAudio(int idAudio) {
+        MediaPlayer audio=MediaPlayer.create(getContext(), idAudio);
+        if(audio != null) {
+            audio.start();
+        }
     }
 }
