@@ -9,11 +9,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import java.util.ArrayList;
 
@@ -185,10 +188,16 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
         renderizarSuelo(canvas);
 
+        // Cambiar la fuente del contador de puntos
+        Typeface typeface= ResourcesCompat.getFont(getContext(), R.font.numbers);
+        paint.setTypeface(typeface);
+
         // Mostrar el puntaje
         paint.setColor(Color.WHITE);
-        paint.setTextSize(70);
-        canvas.drawText("" + score, 500, 300, paint);
+        paint.setTextSize(120);
+        // Sombra de la fuente
+        paint.setShadowLayer(1, 10, 10, Color.BLACK);
+        canvas.drawText("" + score, 500, 350, paint);
 
         // Dibujar el personaje con opacidad reducida si el power-up está activo
         Bitmap frameActual = framesPersonaje[frameIndex];

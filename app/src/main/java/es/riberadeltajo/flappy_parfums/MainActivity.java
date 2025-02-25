@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
     // boton de prueba
     private ImageView btnJugar;
+    private ImageView btnPersonaje;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,12 +27,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btnJugar=findViewById(R.id.btnJugar);
-
-        // Animación de Click en el botón
-        AnimatorSet set=new AnimatorSet();
-        ObjectAnimator pulsarBoton=ObjectAnimator.ofFloat(btnJugar, "translationY", 10, 0);
-        pulsarBoton.setDuration(100);
-        set.play(pulsarBoton);
+        btnPersonaje=findViewById(R.id.btnPersonaje);
 
         btnJugar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -42,7 +38,15 @@ public class MainActivity extends AppCompatActivity {
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 
                 // Comenzaar animación del botón
-                set.start();
+                animarBoton(btnJugar);
+            }
+        });
+
+        btnPersonaje.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Animación botón
+                animarBoton(btnPersonaje);
             }
         });
 
@@ -72,6 +76,16 @@ public class MainActivity extends AppCompatActivity {
         volar.setRepeatMode(ObjectAnimator.REVERSE);
 
         set.play(volar);
+        set.start();
+    }
+
+    private void animarBoton(ImageView idBoton) {
+        // Animación de Click en el botón
+        AnimatorSet set=new AnimatorSet();
+        ObjectAnimator pulsarBoton=ObjectAnimator.ofFloat(idBoton, "translationY", 10, 0);
+        pulsarBoton.setDuration(100);
+
+        set.play(pulsarBoton);
         set.start();
     }
 }

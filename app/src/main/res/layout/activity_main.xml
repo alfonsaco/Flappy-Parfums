@@ -15,6 +15,7 @@
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
@@ -39,18 +40,18 @@
         app:layout_constraintBottom_toTopOf="@+id/btnJugar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/logo" />
+        app:srcCompat="@drawable/parfums" />
 
     <ImageView
         android:id="@+id/btnJugar"
-        android:layout_width="126dp"
-        android:layout_height="78dp"
+        android:layout_width="109dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="68dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.6"
-        app:srcCompat="@drawable/boton" />
+        app:layout_constraintVertical_bias="0.599"
+        app:srcCompat="@drawable/boton_play" />
 
     <TextView
         android:id="@+id/textView"
@@ -68,5 +69,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/btnPersonaje"
+        android:layout_width="109dp"
+        android:layout_height="70dp"
+        app:layout_constraintBottom_toBottomOf="@+id/btnJugar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.261"
+        app:layout_constraintStart_toEndOf="@+id/btnJugar"
+        app:layout_constraintTop_toTopOf="@+id/btnJugar"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/boton_personaje" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
