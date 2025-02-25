@@ -29,6 +29,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private float velY = 0;
     private float GRAVEDAD = 3f;
     private float SALTO = -30;
+    private int score = 0;
+    private int maxTuberias = 15; // Número máximo de tuberías para ganar
+    private boolean gano = false; // Bandera para saber si el jugador ganó
 
     // Suelo
     private Bitmap suelo;
@@ -46,8 +49,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private int personajeAncho;
     private int personajeAlto;
     private Rect rectPersonaje;
-
-    private int score = 0;
 
     private float factorVelocidad;
 
@@ -188,37 +189,41 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             t.actualizar();
         }
 
-
     }
 
     public void renderizar(Canvas canvas) {
         if (canvas == null) return;
-
+        // Limpia el canvas
         canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
-        //dibujar el personaje
+
+        // Dibujar el personaje y tuberías
         float personajeX = 100;
         Bitmap frameActual = framesPersonaje[frameIndex];
         canvas.drawBitmap(frameActual, personajeX, posPersonajeY, null);
-
         for (Tuberia t : tuberias) {
             t.dibujar(canvas);
         }
-
-        //dibujar el suelo
         renderizarSuelo(canvas);
 
+        // Mostrar el puntaje
         Paint paint = new Paint();
         paint.setColor(Color.WHITE);
         paint.setTextSize(70);
+        canvas.drawText("" + score, 500, 300, paint);
 
-        // Dibuja en la parte superior izquierda
-        canvas.drawText( ""+score,500 , 300, paint);
-
+        // Si el juego terminó y el jugador ganó, muestra el mensaje de victoria
+        if (gameOver && gano) {
+            paint.setTextSize(100);
+            // Centrar el mensaje (ajusta las coordenadas según tu diseño)
+            canvas.drawText("¡Ganaste!", getWidth() / 2 - 150, getHeight() / 2, paint);
+        }
     }
 
     private void generarTuberias() {
-        float anchoPantalla = getWidth();
+        // Si ya se ha alcanzado el puntaje máximo, no se generan más tuberías
+        if (score >= maxTuberias - 2) return;
 
+        float anchoPantalla = getWidth();
         // Si no hay tuberías, genera la primera fuera de la pantalla
         if (tuberias.isEmpty()) {
             tuberias.add(new Tuberia(getContext(), anchoPantalla + TIEMPO_ENTRE_TUBERIAS, sueloY, velSuelo, 350));
@@ -234,6 +239,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             tuberias.add(new Tuberia(getContext(), nuevaPosX, sueloY, velSuelo, 350));
         }
     }
+
 
 
 
@@ -268,14 +274,20 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
 
     }
+
     private void chequearPasoTuberias() {
-        float personajeX = 100; // Donde dibujas al personaje
+        float personajeX = 100; // Posición X del personaje
         for (Tuberia t : tuberias) {
             float tuberiaXFinal = t.getX() + t.getAncho();
             if (!t.isPuntoSumado() && tuberiaXFinal < personajeX) {
                 score++;
                 t.setPuntoSumado(true);
-                break; // Detenemos la búsqueda después de sumar un punto
+                // Si alcanzamos el número máximo de tuberías, se gana el juego
+                if (score >= maxTuberias) {
+                    gano = true;
+                    gameOver = true;
+                }
+                break; // Sumamos solo un punto por tubería
             }
         }
     }
