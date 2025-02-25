@@ -39,8 +39,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
 
     private ArrayList<Tuberia> tuberias;
-    private float TIEMPO_ENTRE_TUBERIAS = 2500;
-    private long ultimoSpawn = 0;
+    private float TIEMPO_ENTRE_TUBERIAS = 600f;
+    private float ultimaTuberiaX  = 0;
     private boolean gameOver = false;
 
     private int personajeAncho;
@@ -55,18 +55,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         super(context);
         getHolder().addCallback(this);
 
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        float densidadPantalla = metrics.density;  // Factor de densidad (dpi base = 160)
-        int anchoPantalla = metrics.widthPixels;   // Ancho de pantalla en píxeles
-        int altoPantalla = metrics.heightPixels;   // Alto de pantalla en píxeles
 
-        factorVelocidad = (densidadPantalla + anchoPantalla / 2000f) / 4f;
-
-        // Aplicar a variables del juego
-        velSuelo = 7 * factorVelocidad;
-        GRAVEDAD = 3f * factorVelocidad;
-        SALTO = -30 * factorVelocidad;
-        TIEMPO_ENTRE_TUBERIAS = (int) (2500 / factorVelocidad);
 
         // Hacer transparente el fondo del SurfaceView si deseas ver el fondo del layout
         setZOrderOnTop(true);
@@ -192,6 +181,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         generarTuberias();
         actualizarTuberias();
         chequearColisiones();
+        chequearPasoTuberias();
 
         for (Tuberia t : tuberias) {
             t.setVelocidad(velSuelo); // Ajusta la velocidad de desplazamiento
@@ -227,33 +217,36 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void generarTuberias() {
-        long ahora = SystemClock.uptimeMillis();
-        if (ahora - ultimoSpawn > TIEMPO_ENTRE_TUBERIAS) {
+        float anchoPantalla = getWidth();
 
-            // Aumenta el valor del gap, por ejemplo a 350
-            Tuberia t = new Tuberia(
-                    getContext(),
-                    getWidth(),
-                    sueloY,    // groundY
-                    velSuelo,
-                    350
-            );
-            tuberias.add(t);
-            ultimoSpawn = ahora;
+        // Si no hay tuberías, genera la primera fuera de la pantalla
+        if (tuberias.isEmpty()) {
+            tuberias.add(new Tuberia(getContext(), anchoPantalla + TIEMPO_ENTRE_TUBERIAS, sueloY, velSuelo, 350));
+            return;
+        }
+
+        // Obtener la última tubería generada
+        Tuberia ultimaTuberia = tuberias.get(tuberias.size() - 1);
+
+        // Verificar si la última tubería ya avanzó lo suficiente para agregar una nueva
+        if (ultimaTuberia.getX() + ultimaTuberia.getAncho() < anchoPantalla) {
+            float nuevaPosX = ultimaTuberia.getX() + ultimaTuberia.getAncho() + TIEMPO_ENTRE_TUBERIAS;
+            tuberias.add(new Tuberia(getContext(), nuevaPosX, sueloY, velSuelo, 350));
         }
     }
 
 
+
     private void actualizarTuberias() {
-        for (int i = 0; i < tuberias.size(); i++) {
+        for (int i = tuberias.size() - 1; i >= 0; i--) {
             Tuberia t = tuberias.get(i);
             t.actualizar();
             if (t.fueraDePantalla()) {
                 tuberias.remove(i);
-                i--;
             }
         }
     }
+
 
     private void chequearColisiones() {
         // Crear rect del personaje
@@ -272,17 +265,22 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 break;
             }
         }
-        for (Tuberia t : tuberias) {
-            // Si la tubería NO sumó punto todavía, y ya quedó detrás del personaje
-            float tuberiaXFinal = t.getX() + t.getAncho();
-            if (!t.isPuntoSumado() && tuberiaXFinal < personajeX) {
-                // El personaje cruzó la tubería
-                score++;
-                t.setPuntoSumado(true);
-            }
-        }
+
 
     }
+    private void chequearPasoTuberias() {
+        float personajeX = 100; // Donde dibujas al personaje
+        for (Tuberia t : tuberias) {
+            float tuberiaXFinal = t.getX() + t.getAncho();
+            if (!t.isPuntoSumado() && tuberiaXFinal < personajeX) {
+                score++;
+                t.setPuntoSumado(true);
+                break; // Detenemos la búsqueda después de sumar un punto
+            }
+        }
+    }
+
+
 
 
 
