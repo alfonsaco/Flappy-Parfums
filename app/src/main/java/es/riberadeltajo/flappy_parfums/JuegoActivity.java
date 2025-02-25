@@ -42,22 +42,6 @@ public class JuegoActivity extends AppCompatActivity {
         contenedor.addView(juego);
         layoutPrincipal.addView(contenedor);
 
-
-        btnReset = findViewById(R.id.btnReset);
-
-        // Al pulsar en este botón, se resetea la actividad y el juego, para que el jugados pueda
-        // volver a jugar. También se desplegará la transición
-        btnReset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Se usa un Intent, y no recreate, porque con recreate no se pueden poner transiciones
-                Intent intent = getIntent();
-                finish();
-                startActivity(intent);
-                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-            }
-        });
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
