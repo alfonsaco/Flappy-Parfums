@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -17,7 +18,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private BucleJuego bucle;
 
     // Personaje
-    private Bitmap personaje;
+    private Bitmap[] framesPersonaje;
+    private int frameIndex = 0; // Frame actual
+    private long ultimoCambioFrame = 0; // Para temporizar
+    private final int DURACION_FRAME = 100; // ms por frame
     private float posPersonajeY;
     private float velY = 0;
     private final float GRAVEDAD = 1.5f;
@@ -28,7 +32,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private float posSuelo1;     // X del primer suelo
     private float posSuelo2;     // X del segundo suelo
     private float velSuelo = 7f; // Velocidad de desplazamiento del suelo
-    private float sueloY;        // Posición Y donde se dibuja el suelo
+    private float sueloY;
+
+    private int personajeAncho;
+    private int personajeAlto;
 
     public Juego(Context context) {
         super(context);
@@ -38,13 +45,22 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         setZOrderOnTop(true);
         getHolder().setFormat(PixelFormat.TRANSPARENT);
 
-        // Cargar recursos
-        personaje = BitmapFactory.decodeResource(getResources(), R.drawable.phantom1);
-        // Escalar personaje (por ejemplo, a la mitad)
-        personaje = Bitmap.createScaledBitmap(personaje,
-                personaje.getWidth() / 8,
-                personaje.getHeight() / 8,
-                true);
+        framesPersonaje = new Bitmap[4];
+        framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom1);
+        framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom2);
+        framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom3);
+        framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom4);
+
+        // Escalar cada frame (por ejemplo, a 1/10 de su tamaño original)
+        for (int i = 0; i < framesPersonaje.length; i++) {
+            Bitmap original = framesPersonaje[i];
+            int newWidth = original.getWidth() / 10;
+            int newHeight = original.getHeight() / 10;
+            framesPersonaje[i] = Bitmap.createScaledBitmap(original, newWidth, newHeight, true);
+        }
+        personajeAncho = framesPersonaje[0].getWidth();
+        personajeAlto = framesPersonaje[0].getHeight();
+
 
         suelo = BitmapFactory.decodeResource(getResources(), R.drawable.suelo);
 
@@ -58,7 +74,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     public void surfaceCreated(SurfaceHolder holder) {
         // Cuando la superficie esté lista, calcular posición inicial del personaje en el centro vertical
         int pantallaAlto = getHeight();
-        posPersonajeY = (pantallaAlto - personaje.getHeight()) / 2f;
+        posPersonajeY = (pantallaAlto - personajeAlto) / 2f;
 
         // Posicionar el suelo en la parte inferior
         sueloY = getHeight() - suelo.getHeight();
@@ -87,16 +103,22 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
     // Lógica de actualización: se llama cada frame en el hilo
     public void actualizar() {
-        // 1. Actualizar física del personaje (gravedad + salto)
+
+        long ahora = SystemClock.uptimeMillis();
+        if (ahora - ultimoCambioFrame >= DURACION_FRAME) {
+            frameIndex = (frameIndex + 1) % framesPersonaje.length;
+            ultimoCambioFrame = ahora;
+        }
+
         velY += GRAVEDAD;
         posPersonajeY += velY;
 
-        // Evitar que salga por abajo
-        float limiteInferior = getHeight() - personaje.getHeight();
+        float limiteInferior = getHeight() - personajeAlto;
         if (posPersonajeY > limiteInferior) {
             posPersonajeY = limiteInferior;
             velY = 0;
         }
+
         // Evitar que salga por arriba
         if (posPersonajeY < 0) {
             posPersonajeY = 0;
@@ -121,9 +143,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
         canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
 
-        // DIBUJAR PERSONAJE
-        float personajeX = 100; // Ubicación en X
-        canvas.drawBitmap(personaje, personajeX, posPersonajeY, null);
+        float personajeX = 100;
+        Bitmap frameActual = framesPersonaje[frameIndex];
+        canvas.drawBitmap(frameActual, personajeX, posPersonajeY, null);
 
         // DIBUJAR SUELO (dos copias para scroll infinito)
         renderizarSuelo(canvas);
