@@ -8,208 +8,156 @@ import android.graphics.Rect;
 import java.util.Random;
 
 public class Tuberia {
-
-    // Bitmaps originales
+    // Bitmaps y variables existentes...
     private Bitmap tuberiaArribaOriginal;
     private Bitmap tuberiaAbajoOriginal;
-
-    // Bitmaps escalados (se crean una sola vez)
     private Bitmap tuberiaArribaEscalada;
     private Bitmap tuberiaAbajoEscalada;
-
-    // Posición X de la tubería
     private float x;
-
-    // Alturas originales (sin escalar)
     private float topHeight;
     private float bottomHeight;
-    // Hueco original entre la parte superior e inferior
     private float gap;
-
-    // Alturas escaladas
     private float topHeightEscalada;
     private float bottomHeightEscalada;
     private float gapEscalado;
-
-    // Parámetros de posicionamiento
-    private float groundY;   // Y donde comienza el suelo (limite inferior del área jugable)
-    private float velocidad; // Velocidad de desplazamiento
-
-    // Rectángulos para colisiones
+    private float groundY;
+    private float velocidad;
     private Rect rectArriba;
     private Rect rectAbajo;
-
-    // Factor de escalado (puedes ajustarlo según la calidad de tus assets)
-    private static final float FACTOR_ESCALA = 1.3f;
-
-    // Control para sumar puntos una sola vez
     private boolean puntoSumado = false;
-
-    // Generador aleatorio para la altura de la tubería superior
+    private static final float FACTOR_ESCALA = 1.3f;
     private static final Random random = new Random();
 
-    /**
-     * Constructor de Tuberia.
-     *
-     * @param context       Contexto para cargar recursos.
-     * @param pantallaAncho Ancho de la pantalla (para posicionarla inicialmente a la derecha).
-     * @param groundY       Y donde comienza el suelo.
-     * @param velocidad     Velocidad de desplazamiento horizontal.
-     * @param gap           Hueco vertical (en píxeles, sin escalar) entre tubería superior e inferior.
-     */
-    public Tuberia(Context context,
-                   float pantallaAncho,
-                   float groundY,
-                   float velocidad,
-                   float gap) {
+    // Nuevas variables para el power-up
+    private boolean powerUp = false;
+    private Bitmap imagenPowerUp;
+    private Rect rectPowerUp;
+    private boolean powerUpCollected = false;
 
-        // Cargar los bitmaps originales
+    // Constructor modificado que recibe el flag 'powerUp'
+    public Tuberia(Context context, float pantallaAncho, float groundY, float velocidad, float gap, boolean powerUp) {
         tuberiaArribaOriginal = BitmapFactory.decodeResource(context.getResources(), R.drawable.inverspipered);
         tuberiaAbajoOriginal  = BitmapFactory.decodeResource(context.getResources(), R.drawable.pipered);
 
         this.velocidad = velocidad;
         this.gap = gap;
         this.groundY = groundY;
-        // La tubería se posiciona inicialmente a la derecha de la pantalla
         x = pantallaAncho;
 
-        /*
-         * Calcula la altura superior (topHeight) de forma aleatoria.
-         * IMPORTANTE: Asegúrate de que groundY sea lo suficientemente alto para que
-         * se pueda acomodar un topHeight + gap + bottomHeight.
-         */
         float minTop = 400;
-        float maxTop = groundY - gap - 400; // 400: margen para el suelo
+        float maxTop = groundY - gap - 400;
         if (maxTop < minTop) {
             maxTop = minTop + 50;
         }
         topHeight = minTop + random.nextFloat() * (maxTop - minTop);
-
-        // Calcula bottomHeight para que la suma (topHeight + gap + bottomHeight) sea igual a groundY
         bottomHeight = groundY - (topHeight + gap);
         if (bottomHeight < 0) {
-            bottomHeight = 0; // Evita valores negativos
+            bottomHeight = 0;
         }
 
-        // Escala las dimensiones usando FACTOR_ESCALA
-        // También escalamos el gap para que se vea proporcional
         float anchoOriginal = tuberiaArribaOriginal.getWidth();
         float anchoEscalado = anchoOriginal * FACTOR_ESCALA;
-        topHeightEscalada    = topHeight    * FACTOR_ESCALA;
+        topHeightEscalada = topHeight * FACTOR_ESCALA;
         bottomHeightEscalada = bottomHeight * FACTOR_ESCALA;
-        gapEscalado          = gap          * FACTOR_ESCALA;
-
-        /*
-         * Si los valores escalados son muy pequeños, puede que la imagen se pixele.
-         * Para evitarlo, asegúrate de usar imágenes originales de buena resolución
-         * o ajusta FACTOR_ESCALA a un valor menor.
-         */
+        gapEscalado = gap * FACTOR_ESCALA;
         if (anchoEscalado <= 0 || topHeightEscalada <= 0 || bottomHeightEscalada <= 0) {
-            // Si algo falla, usamos las imágenes originales (aunque esto podría romper la lógica visual)
             tuberiaArribaEscalada = tuberiaArribaOriginal;
-            tuberiaAbajoEscalada  = tuberiaAbajoOriginal;
+            tuberiaAbajoEscalada = tuberiaAbajoOriginal;
         } else {
             tuberiaArribaEscalada = Bitmap.createScaledBitmap(
                     tuberiaArribaOriginal,
                     (int) anchoEscalado,
                     (int) topHeightEscalada,
-                    true
-            );
+                    true);
             tuberiaAbajoEscalada = Bitmap.createScaledBitmap(
                     tuberiaAbajoOriginal,
                     (int) anchoEscalado,
                     (int) bottomHeightEscalada,
-                    true
-            );
+                    true);
         }
-
-        // Inicializar rectángulos para las colisiones
         rectArriba = new Rect();
-        rectAbajo  = new Rect();
+        rectAbajo = new Rect();
+
+        // Configurar el power-up si corresponde
+        this.powerUp = powerUp;
+        if (powerUp) {
+            imagenPowerUp = BitmapFactory.decodeResource(context.getResources(), R.drawable.invisibilidad);
+            int tubeWidth = tuberiaArribaEscalada.getWidth();
+            int scaledWidth = tubeWidth / 2; // Por ejemplo, la mitad del ancho de la tubería
+            int scaledHeight = (int) (imagenPowerUp.getHeight() * ((float) scaledWidth / imagenPowerUp.getWidth()));
+            imagenPowerUp = Bitmap.createScaledBitmap(imagenPowerUp, scaledWidth, scaledHeight, true);
+            int powerUpX = (int) (x + tubeWidth / 2 - scaledWidth / 2);
+            int powerUpY = (int) (tuberiaArribaEscalada.getHeight() + (gapEscalado / 2) - (scaledHeight / 2));
+            rectPowerUp = new Rect(powerUpX, powerUpY, powerUpX + scaledWidth, powerUpY + scaledHeight);
+        }
     }
 
-    /**
-     * Actualiza la posición de la tubería y sus rectángulos de colisión.
-     */
+    public boolean isPuntoSumado() {
+        return puntoSumado;
+    }
+    public void setPuntoSumado(boolean puntoSumado) {
+        this.puntoSumado = puntoSumado;
+    }
+    public float getX() {
+        return x;
+    }
+    public float getAncho() {
+        return tuberiaArribaEscalada.getWidth();
+    }
+    public void setVelocidad(float velocidad) {
+        this.velocidad = velocidad;
+    }
+
+    // Getters y setters para el power-up
+    public boolean hasPowerUp() {
+        return powerUp;
+    }
+    public boolean isPowerUpCollected() {
+        return powerUpCollected;
+    }
+    public void setPowerUpCollected(boolean collected) {
+        powerUpCollected = collected;
+    }
+    public Rect getRectPowerUp() {
+        return rectPowerUp;
+    }
+
     public void actualizar() {
-        // Mueve la tubería hacia la izquierda
         x -= velocidad;
-
-        // Dimensiones de los bitmaps escalados
         float anchoArriba = tuberiaArribaEscalada.getWidth();
-        float altoArriba  = tuberiaArribaEscalada.getHeight();
-        float anchoAbajo  = tuberiaAbajoEscalada.getWidth();
-        float altoAbajo   = tuberiaAbajoEscalada.getHeight();
-
-        // La parte inferior se posiciona debajo de la superior dejando el gap escalado
+        float altoArriba = tuberiaArribaEscalada.getHeight();
+        float anchoAbajo = tuberiaAbajoEscalada.getWidth();
+        float altoAbajo = tuberiaAbajoEscalada.getHeight();
         float posAbajo = altoArriba + gapEscalado;
 
-        // Actualiza rectángulo de la tubería superior
-        rectArriba.set(
-                (int) x,
-                0,
-                (int) (x + anchoArriba),
-                (int) altoArriba
-        );
+        rectArriba.set((int) x, 0, (int) (x + anchoArriba), (int) altoArriba);
+        rectAbajo.set((int) x, (int) posAbajo, (int) (x + anchoAbajo), (int) (posAbajo + altoAbajo));
 
-        // Actualiza rectángulo de la tubería inferior
-        rectAbajo.set(
-                (int) x,
-                (int) posAbajo,
-                (int) (x + anchoAbajo),
-                (int) (posAbajo + altoAbajo)
-        );
+        if (powerUp && !powerUpCollected && rectPowerUp != null) {
+            int tubeWidth = tuberiaArribaEscalada.getWidth();
+            int scaledWidth = rectPowerUp.width();
+            int powerUpX = (int) (x + tubeWidth / 2 - scaledWidth / 2);
+            rectPowerUp.left = powerUpX;
+            rectPowerUp.right = powerUpX + scaledWidth;
+        }
     }
 
-    /**
-     * Dibuja la tubería en el canvas, dejando un hueco entre la parte superior e inferior.
-     */
     public void dibujar(Canvas canvas) {
-        // Dibuja la tubería superior en Y = 0
         canvas.drawBitmap(tuberiaArribaEscalada, x, 0, null);
-        // Dibuja la tubería inferior, dejando el hueco escalado
         float posAbajo = tuberiaArribaEscalada.getHeight() + gapEscalado;
         canvas.drawBitmap(tuberiaAbajoEscalada, x, posAbajo, null);
+        if (powerUp && !powerUpCollected && imagenPowerUp != null && rectPowerUp != null) {
+            canvas.drawBitmap(imagenPowerUp, rectPowerUp.left, rectPowerUp.top, null);
+        }
     }
 
-    /**
-     * Devuelve true si la tubería ya salió completamente de la pantalla.
-     */
     public boolean fueraDePantalla() {
         float anchoTuberia = tuberiaArribaEscalada.getWidth();
         return (x + anchoTuberia < 0);
     }
 
-    /**
-     * Comprueba si hay colisión con el rectángulo del personaje.
-     */
     public boolean colisionaCon(Rect rectPersonaje) {
-        return Rect.intersects(rectPersonaje, rectArriba) ||
-                Rect.intersects(rectPersonaje, rectAbajo);
-    }
-
-    // GETTERS Y SETTERS
-
-    public boolean isPuntoSumado() {
-        return puntoSumado;
-    }
-
-    public void setPuntoSumado(boolean puntoSumado) {
-        this.puntoSumado = puntoSumado;
-    }
-
-    public float getX() {
-        return x;
-    }
-
-    /**
-     * Retorna el ancho (ya escalado) de la tubería, útil para calcular la posición de la siguiente.
-     */
-    public float getAncho() {
-        return tuberiaArribaEscalada.getWidth();
-    }
-
-    public void setVelocidad(float velocidad) {
-        this.velocidad = velocidad;
+        return Rect.intersects(rectPersonaje, rectArriba) || Rect.intersects(rectPersonaje, rectAbajo);
     }
 }
+
