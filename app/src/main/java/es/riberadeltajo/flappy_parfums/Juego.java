@@ -24,8 +24,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private final int DURACION_FRAME = 100; // ms por frame
     private float posPersonajeY;
     private float velY = 0;
-    private final float GRAVEDAD = 1.5f;
-    private final float SALTO = -20;
+    private final float GRAVEDAD = 3f;
+    private final float SALTO = -34;
 
     // Suelo
     private Bitmap suelo;
