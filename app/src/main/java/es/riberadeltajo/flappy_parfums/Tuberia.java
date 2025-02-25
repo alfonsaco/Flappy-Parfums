@@ -128,6 +128,9 @@ public class Tuberia {
         rectAbajo  = new Rect();
     }
 
+    // Actualizando y subiendo cambios
+
+
     /**
      * Actualiza la posición de la tubería y sus rectángulos de colisión.
      */
