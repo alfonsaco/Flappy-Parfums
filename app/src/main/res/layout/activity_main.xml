@@ -82,4 +82,32 @@
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/boton_personaje" />
 
+    <Button
+        android:id="@+id/btnPhantom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="PHATNOM"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <Button
+        android:id="@+id/btnAzzaro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AZZARO"
+        app:layout_constraintEnd_toEndOf="@+id/btnPhantom"
+        app:layout_constraintStart_toStartOf="@+id/btnPhantom"
+        app:layout_constraintTop_toBottomOf="@+id/btnPhantom" />
+
+    <Button
+        android:id="@+id/btnStronger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="STRONGER"
+        app:layout_constraintEnd_toEndOf="@+id/btnAzzaro"
+        app:layout_constraintStart_toStartOf="@+id/btnAzzaro"
+        app:layout_constraintTop_toBottomOf="@+id/btnAzzaro" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

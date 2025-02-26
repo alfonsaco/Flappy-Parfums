@@ -7,6 +7,7 @@ import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -21,6 +22,12 @@ public class MainActivity extends AppCompatActivity {
     private ImageView btnJugar;
     private ImageView btnPersonaje;
 
+    private Button btnAzzaro;
+    private Button btnStronger;
+    private Button btnPhantom;
+
+    int personajeElegido=R.drawable.personaje_phantom;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,11 +37,40 @@ public class MainActivity extends AppCompatActivity {
         btnJugar=findViewById(R.id.btnJugar);
         btnPersonaje=findViewById(R.id.btnPersonaje);
 
+        btnAzzaro=findViewById(R.id.btnAzzaro);
+        btnStronger=findViewById(R.id.btnStronger);
+        btnPhantom=findViewById(R.id.btnPhantom);
+
+        btnAzzaro.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                personajeElegido=R.drawable.personaje_azzaro;
+                animarColonia(personajeElegido);
+            }
+        });
+        btnStronger.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                personajeElegido=R.drawable.personaje_stronger;
+                animarColonia(personajeElegido);
+            }
+        });
+        btnPhantom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                personajeElegido=R.drawable.personaje_phantom;
+                animarColonia(personajeElegido);
+            }
+        });
+
+
         btnJugar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(MainActivity.this, JuegoActivity.class);
+                intent.putExtra("personaje", personajeElegido);
                 startActivity(intent);
+
                 // Transición entre las actividades
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 
@@ -53,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        animarColonia();
+        animarColonia(personajeElegido);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -62,11 +98,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void animarColonia() {
+    private void animarColonia(int idPersonaje) {
         // Agregar frames del personaje
         AnimationDrawable animacionColonia;
         ImageView personaje=(ImageView) findViewById(R.id.imgPersonaje);
-        personaje.setBackgroundResource(R.drawable.personaje_phantom);
+        personaje.setBackgroundResource(idPersonaje);
 
         animacionColonia=(AnimationDrawable) personaje.getBackground();
         animacionColonia.start();
