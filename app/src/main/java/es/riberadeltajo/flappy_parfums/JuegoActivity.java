@@ -36,6 +36,9 @@ public class JuegoActivity extends AppCompatActivity {
 
         ConstraintLayout layoutPrincipal = findViewById(R.id.main);
 
+        Intent intent=getIntent();
+        int idPersonaje=intent.getIntExtra("personaje",0);
+
         // Crea e inserta el SurfaceView "Juego"
         juego = new Juego(this);
         FrameLayout contenedor = new FrameLayout(this);
