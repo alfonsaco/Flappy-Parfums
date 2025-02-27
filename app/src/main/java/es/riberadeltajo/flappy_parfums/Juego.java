@@ -97,8 +97,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         imagenHola = BitmapFactory.decodeResource(getResources(), R.drawable.message);
 
         gameOverBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gameover);
-
-
     }
 
     // Función para establecer el personaje según el id
@@ -210,9 +208,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
-        // Si el juego ha terminado, reproducimos el sonido de muerte solo una vez
+        // Si el juego ha terminado, reproducimos el sonido de muerte solo si no se ganó
         if (gameOver) {
-            if (!deathSoundPlayed) {
+            if (!gano && !deathSoundPlayed) {
                 reproducirAudio(R.raw.morir);
                 deathSoundPlayed = true;
             }
@@ -262,7 +260,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         if (canvas == null) return;
         canvas.drawColor(0, PorterDuff.Mode.CLEAR);
 
-        // Si el juego no ha empezado, mostramos el estado de espera con la imagen
+        // Si el juego no ha empezado, mostramos la imagen de inicio
         if (!gameStarted) {
             float personajeX = 100;
             Bitmap frameActual = framesPersonaje[frameIndex];
@@ -298,26 +296,21 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
         canvas.drawBitmap(frameActual, personajeX, posPersonajeY, personajePaint);
 
-        if (gameOver && !gano) {
-            // Calculamos un factor de escala para que se adapte de forma responsiva.
-            // En este ejemplo, la imagen ocupará ~60% del ancho de la pantalla.
-            int gameOverWidth = (int) (getWidth() * 0.6f);
-            float scale = (float) gameOverWidth / gameOverBitmap.getWidth();
-            int gameOverHeight = (int) (gameOverBitmap.getHeight() * scale);
-
-            // Redimensionamos la imagen
-            Bitmap scaledGameOver = Bitmap.createScaledBitmap(
-                    gameOverBitmap, gameOverWidth, gameOverHeight, true
-            );
-
-            // Calculamos coordenadas para centrarla
-            float gameOverX = (getWidth() - gameOverWidth) / 2f;
-            float gameOverY = (getHeight() - gameOverHeight) / 2f;
-
-            // Dibujamos la imagen en el canvas
-            canvas.drawBitmap(scaledGameOver, gameOverX, gameOverY, null);
+        // Si el juego ha terminado, mostramos el mensaje de victoria o la imagen de game over
+        if (gameOver) {
+            if (gano) {
+                String mensaje = "¡Ganaste!";
+                paint.setTextSize(100);
+                float textWidth = paint.measureText(mensaje);
+                float x = (getWidth() - textWidth) / 2f;
+                float y = (getHeight() / 2f) - ((paint.descent() + paint.ascent()) / 2f);
+                canvas.drawText(mensaje, x, y, paint);
+            } else {
+                float x = (getWidth() - gameOverBitmap.getWidth()) / 2f;
+                float y = (getHeight() - gameOverBitmap.getHeight()) / 2f;
+                canvas.drawBitmap(gameOverBitmap, x, y, null);
+            }
         }
-
     }
 
     private void generarTuberias() {
