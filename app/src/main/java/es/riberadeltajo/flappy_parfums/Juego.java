@@ -2,7 +2,9 @@ package es.riberadeltajo.flappy_parfums;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences; // IMPORTANTE
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -58,16 +60,20 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private int invisibilidadTuberiasRestantes = 0; // Tuberías con invisibilidad activa
 
     // Variables de estado del juego
-    // gameStarted se activa con el primer click; el suelo se mueve desde el inicio, salvo cuando muere.
-    private boolean gameStarted = false;
-    // Para que el sonido de muerte se reproduzca solo una vez.
-    private boolean deathSoundPlayed = false;
+    private boolean gameStarted = false;   // Primer click
+    private boolean deathSoundPlayed = false; // Para que el sonido de muerte se reproduzca solo una vez
 
     // Imagen que se mostrará al inicio
     private Bitmap imagenHola;
 
     // Variable para almacenar el AnimatorSet de la animación de "volar"
     private AnimatorSet animSet;
+
+    // ------------ NUEVO: Para guardar la mejor puntuación ------------
+    private SharedPreferences prefs;
+    private static final String PREFS_NAME = "MisPuntuaciones";
+    private static final String KEY_BEST_SCORE = "mejorPuntuacion";
+    private int bestScore = 0; // Se cargará desde SharedPreferences
 
     public Juego(Context context, int idPersonaje) {
         super(context);
@@ -89,7 +95,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         personajeAlto = framesPersonaje[0].getHeight();
 
         suelo = BitmapFactory.decodeResource(getResources(), R.drawable.suelo);
-        // La posición vertical se ajustará en surfaceCreated
         posPersonajeY = 0;
 
         tuberias = new ArrayList<>();
@@ -98,8 +103,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         imagenHola = BitmapFactory.decodeResource(getResources(), R.drawable.message);
 
         gameOverBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gameover);
-        // Cargamos el nuevo drawable dialogo_score
         dialogoScoreBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.dialogo_score);
+
+        // -------------- CARGAMOS BEST SCORE DESDE SharedPreferences --------------
+        prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        bestScore = prefs.getInt(KEY_BEST_SCORE, 0); // 0 si no existe
     }
 
     // Función para establecer el personaje según el id
@@ -130,14 +138,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom3);
             framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom4);
         }
-    }
-
-    // Getters y Setters para la propiedad que animaremos
-    public float getPosPersonajeY() {
-        return posPersonajeY;
-    }
-    public void setPosPersonajeY(float pos) {
-        this.posPersonajeY = pos;
     }
 
     @Override
@@ -189,7 +189,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void actualizar() {
-        // Actualizamos el movimiento del suelo solo si el juego no ha terminado
         if (!gameOver) {
             posSuelo1 -= velSuelo;
             posSuelo2 -= velSuelo;
@@ -201,7 +200,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        // Si el juego no ha empezado, solo actualizamos los frames
         if (!gameStarted) {
             long ahora = System.currentTimeMillis();
             if (ahora - ultimoCambioFrame >= DURACION_FRAME) {
@@ -211,8 +209,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
-        // Si el juego ha terminado, reproducimos el sonido de muerte solo si no se ganó
         if (gameOver) {
+            // Si no se ganó y no sonó la muerte, la reproducimos
             if (!gano && !deathSoundPlayed) {
                 reproducirAudio(R.raw.morir);
                 deathSoundPlayed = true;
@@ -220,7 +218,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
-        // Actualizar física del personaje
+        // Física del personaje
         velY += GRAVEDAD;
         posPersonajeY += velY;
 
@@ -230,7 +228,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             ultimoCambioFrame = ahora;
         }
 
-        // Límites del personaje
+        // Límites
         if (posPersonajeY <= 0) {
             posPersonajeY = 0;
             gameOver = true;
@@ -241,12 +239,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             gameOver = true;
         }
 
-        // Actualizar rectángulo del personaje (posición fija en X)
         float personajeX = 100;
         rectPersonaje.set((int) personajeX, (int) posPersonajeY,
                 (int) (personajeX + personajeAncho), (int) (posPersonajeY + personajeAlto));
 
-        // Procesar tuberías y colisiones
         generarTuberias();
         actualizarTuberias();
         chequearColisiones();
@@ -263,7 +259,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         if (canvas == null) return;
         canvas.drawColor(0, PorterDuff.Mode.CLEAR);
 
-        // Si el juego no ha empezado, mostramos la pantalla de inicio
         if (!gameStarted) {
             float personajeX = 100;
             Bitmap frameActual = framesPersonaje[frameIndex];
@@ -277,14 +272,13 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
-        // Renderizado normal del juego: tuberías, suelo, personaje...
         float personajeX = 100;
         for (Tuberia t : tuberias) {
             t.dibujar(canvas);
         }
         renderizarSuelo(canvas);
 
-        // Si NO ha terminado, mostramos la puntuación grande arriba
+        // Mostramos la puntuación arriba solo si no ha terminado
         if (!gameOver) {
             Paint paint = new Paint();
             Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.numbers);
@@ -295,7 +289,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             canvas.drawText("" + score, 500, 350, paint);
         }
 
-        // Dibujamos el personaje (con transparencia si hay power-up)
         Bitmap frameActual = framesPersonaje[frameIndex];
         Paint personajePaint = new Paint();
         if (invisibilidadTuberiasRestantes > 0) {
@@ -305,9 +298,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
         canvas.drawBitmap(frameActual, personajeX, posPersonajeY, personajePaint);
 
-        // Si el juego ha terminado:
         if (gameOver) {
-            // Si se ganó
             if (gano) {
                 Paint paint = new Paint();
                 paint.setColor(Color.WHITE);
@@ -320,56 +311,75 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 float x = (getWidth() - textWidth) / 2f;
                 float y = (getHeight() / 2f) - ((paint.descent() + paint.ascent()) / 2f);
                 canvas.drawText(mensaje, x, y, paint);
-            }
-            // Si se perdió
-            else {
+            } else {
+                // 1) Si la puntuación actual supera la bestScore, la actualizamos en SharedPreferences
+                if (score > bestScore) {
+                    bestScore = score;
+                    // Guardar en SharedPreferences
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putInt(KEY_BEST_SCORE, bestScore);
+                    editor.apply();
+                }
+
                 // Subimos un poco el bloque
                 float margenEntreImagenes = 20f;
                 float alturaTotal = gameOverBitmap.getHeight() + margenEntreImagenes + dialogoScoreBitmap.getHeight();
-                float bloqueY = (getHeight() - alturaTotal) / 2f - 100f; // -100f para subirlo
+                float bloqueY = (getHeight() - alturaTotal) / 2f - 100f;
 
-                // Dibuja "Game Over" centrado
+                // Dibuja "Game Over"
                 float gameOverX = (getWidth() - gameOverBitmap.getWidth()) / 2f;
                 canvas.drawBitmap(gameOverBitmap, gameOverX, bloqueY, null);
 
-                // Dibuja "dialogo_score" debajo
+                // Dibuja "dialogo_score"
                 float dialogoX = (getWidth() - dialogoScoreBitmap.getWidth()) / 2f;
                 float dialogoY = bloqueY + gameOverBitmap.getHeight() + margenEntreImagenes;
                 canvas.drawBitmap(dialogoScoreBitmap, dialogoX, dialogoY, null);
 
-                // Dibuja la puntuación final justo debajo de "SCORE"
-                Paint paint = new Paint();
-                paint.setColor(Color.WHITE);
-                paint.setTextSize(55);
-                paint.setShadowLayer(1, 10, 10, Color.BLACK);
-                paint.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
+                // Puntuación actual debajo de "SCORE"
+                Paint paintScore = new Paint();
+                paintScore.setColor(Color.WHITE);
+                paintScore.setTextSize(55);
+                paintScore.setShadowLayer(1, 4, 4, Color.BLACK);
+                paintScore.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
 
                 String finalScore = String.valueOf(score);
 
-                // Ajusta estos valores para colocar el texto debajo del "SCORE"
-                // que está en tu imagen. EJEMPLO:
-                float offsetX = 500f; // Distancia horizontal desde la esquina izq. de dialogo_score
-                float offsetY = 110f;  // Distancia vertical desde la esquina sup. de dialogo_score
+                // Ajusta estos valores para que quede debajo de "SCORE"
+                float offsetXScore = 500f;
+                float offsetYScore = 110f;
 
-                // Calcula la posición objetivo
-                float circleCenterX = dialogoX + offsetX;
-                float circleCenterY = dialogoY + offsetY;
+                float scoreCenterX = dialogoX + offsetXScore;
+                float scoreCenterY = dialogoY + offsetYScore;
+                float textWidth = paintScore.measureText(finalScore);
+                float textX = scoreCenterX - (textWidth / 2f);
+                float textY = scoreCenterY - ((paintScore.descent() + paintScore.ascent()) / 2f);
 
-                // Centrar el texto horizontalmente
-                float textWidth = paint.measureText(finalScore);
-                float textX = circleCenterX - (textWidth / 2f);
+                canvas.drawText(finalScore, textX, textY, paintScore);
 
-                // Para que circleCenterY sea la línea base del texto:
-                // float textY = circleCenterY;
-                // O para centrar verticalmente en ese punto:
-                float textY = circleCenterY - ((paint.descent() + paint.ascent()) / 2f);
+                // 2) Dibuja la mejor puntuación debajo de "BEST"
+                Paint paintBest = new Paint();
+                paintBest.setColor(Color.WHITE);
+                paintBest.setTextSize(55);
+                paintBest.setShadowLayer(1, 4, 4, Color.BLACK);
+                paintBest.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
 
-                canvas.drawText(finalScore, textX, textY, paint);
+                String finalBest = String.valueOf(bestScore);
+
+                // Ajusta estos valores para que quede debajo de "BEST"
+                // Por ejemplo, un poco más abajo (30 píxeles) que la puntuación actual
+                float offsetXBest = 500f;
+                float offsetYBest = 230f; // un poco mayor que offsetYScore
+
+                float bestCenterX = dialogoX + offsetXBest;
+                float bestCenterY = dialogoY + offsetYBest;
+                float textWidthBest = paintBest.measureText(finalBest);
+                float textXBest = bestCenterX - (textWidthBest / 2f);
+                float textYBest = bestCenterY - ((paintBest.descent() + paintBest.ascent()) / 2f);
+
+                canvas.drawText(finalBest, textXBest, textYBest, paintBest);
             }
         }
     }
-
-
 
     private void generarTuberias() {
         if (score >= maxTuberias - 2) return;
@@ -449,14 +459,13 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (gameOver) {
-                // Si se perdió la partida, calcular el rectángulo del drawable dialogo_score
+                // Si se perdió, verificar si se pulsó en dialogo_score para reiniciar
                 if (!gano) {
-                    // Primero, se obtiene la posición de gameOverBitmap (centrada)
                     float gameOverX = (getWidth() - gameOverBitmap.getWidth()) / 2f;
                     float gameOverY = (getHeight() - gameOverBitmap.getHeight()) / 2f;
-                    // Luego, se calcula la posición del dialogo_score debajo, con un margen de 20px
                     float dialogoX = (getWidth() - dialogoScoreBitmap.getWidth()) / 2f;
                     float dialogoY = gameOverY + gameOverBitmap.getHeight() + 20;
+
                     Rect dialogoRect = new Rect(
                             (int) dialogoX,
                             (int) dialogoY,
@@ -472,7 +481,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 return true;
             } else if (!gameStarted) {
                 gameStarted = true;
-                // Paramos la animación de volar una vez que se haya dado el primer click
                 if (animSet != null && animSet.isRunning()) {
                     animSet.cancel();
                 }
@@ -487,7 +495,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         return super.onTouchEvent(event);
     }
 
-
     // Método para reiniciar la partida
     private void reiniciarPartida() {
         score = 0;
@@ -498,15 +505,17 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         totalTuberiasGeneradas = 0;
         invisibilidadTuberiasRestantes = 0;
         tuberias.clear();
-        // Reiniciamos la posición del personaje
+
+        // Posición del personaje al centro
         posPersonajeY = (getHeight() - personajeAlto) / 2f;
         velY = 0;
-        // Reiniciamos la animación de "volar" en espera
+
+        // Reanudar animación "volar" en espera
         if (animSet != null) {
             animSet.cancel();
         }
         animSet = new AnimatorSet();
-        ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
+        @SuppressLint("ObjectAnimatorBinding") ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
         volar.setDuration(400);
         volar.setRepeatCount(ObjectAnimator.INFINITE);
         volar.setRepeatMode(ObjectAnimator.REVERSE);
