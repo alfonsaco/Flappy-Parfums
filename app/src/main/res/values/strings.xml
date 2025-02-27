@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Flappy-Parfums</string>
+    <!--Nombre visible en el escritorio-->
+    <string name="app_name">Flappy Parfums</string>
 </resources>
