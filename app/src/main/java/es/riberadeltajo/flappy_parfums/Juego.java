@@ -25,6 +25,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private BucleJuego bucle;
     // Personaje
     private Bitmap[] framesPersonaje;
+    private Bitmap gameOverBitmap;
     private int frameIndex = 0;
     private long ultimoCambioFrame = 0;
     private final int DURACION_FRAME = 100;
@@ -94,6 +95,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         rectPersonaje = new Rect();
 
         imagenHola = BitmapFactory.decodeResource(getResources(), R.drawable.message);
+
+        gameOverBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gameover);
+
+
     }
 
     // Función para establecer el personaje según el id
@@ -293,10 +298,26 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
         canvas.drawBitmap(frameActual, personajeX, posPersonajeY, personajePaint);
 
-        if (gameOver && gano) {
-            paint.setTextSize(100);
-            canvas.drawText("¡Ganaste!", getWidth() / 2 - 150, getHeight() / 2, paint);
+        if (gameOver && !gano) {
+            // Calculamos un factor de escala para que se adapte de forma responsiva.
+            // En este ejemplo, la imagen ocupará ~60% del ancho de la pantalla.
+            int gameOverWidth = (int) (getWidth() * 0.6f);
+            float scale = (float) gameOverWidth / gameOverBitmap.getWidth();
+            int gameOverHeight = (int) (gameOverBitmap.getHeight() * scale);
+
+            // Redimensionamos la imagen
+            Bitmap scaledGameOver = Bitmap.createScaledBitmap(
+                    gameOverBitmap, gameOverWidth, gameOverHeight, true
+            );
+
+            // Calculamos coordenadas para centrarla
+            float gameOverX = (getWidth() - gameOverWidth) / 2f;
+            float gameOverY = (getHeight() - gameOverHeight) / 2f;
+
+            // Dibujamos la imagen en el canvas
+            canvas.drawBitmap(scaledGameOver, gameOverX, gameOverY, null);
         }
+
     }
 
     private void generarTuberias() {
