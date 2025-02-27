@@ -57,23 +57,19 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private int totalTuberiasGeneradas = 0;
     private int invisibilidadTuberiasRestantes = 0; // Cantidad de tuberías restantes con invisibilidad
 
-    public Juego(Context context) {
+    public Juego(Context context, int idPersonaje) {
         super(context);
         getHolder().addCallback(this);
         setZOrderOnTop(true);
         getHolder().setFormat(PixelFormat.TRANSPARENT);
 
-        framesPersonaje = new Bitmap[4];
-        framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom1);
-        framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom2);
-        framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom3);
-        framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom4);
+        establecerPersonaje(idPersonaje);
 
         for (int i = 0; i < framesPersonaje.length; i++) {
             framesPersonaje[i] = Bitmap.createScaledBitmap(
                     framesPersonaje[i],
-                    framesPersonaje[i].getWidth() / 11,
-                    framesPersonaje[i].getHeight() / 11,
+                    framesPersonaje[i].getWidth() / 13,
+                    framesPersonaje[i].getHeight() / 13,
                     true);
         }
         personajeAncho = framesPersonaje[0].getWidth();
@@ -85,6 +81,40 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         posSuelo2 = suelo.getWidth();
         tuberias = new ArrayList<>();
         rectPersonaje = new Rect();
+    }
+
+    // Función para establecer cual es el personaje
+    private void establecerPersonaje(int idPersonaje) {
+        if(idPersonaje == R.drawable.personaje_phantom) {
+            framesPersonaje = new Bitmap[4];
+            framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom1);
+            framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom2);
+            framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom3);
+            framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom4);
+
+        } else if(idPersonaje == R.drawable.personaje_azzaro) {
+            framesPersonaje = new Bitmap[5];
+            framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro1);
+            framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro2);
+            framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro3);
+            framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro4);
+            framesPersonaje[4] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro5);
+
+        } else if(idPersonaje == R.drawable.personaje_stronger) {
+            framesPersonaje = new Bitmap[4];
+            framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger1);
+            framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger2);
+            framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger3);
+            framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger4);
+
+            // Por defecto
+        } else {
+            framesPersonaje = new Bitmap[4];
+            framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom1);
+            framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom2);
+            framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom3);
+            framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom4);
+        }
     }
 
     @Override

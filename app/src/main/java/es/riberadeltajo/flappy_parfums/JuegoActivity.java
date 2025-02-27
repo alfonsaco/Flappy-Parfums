@@ -40,7 +40,7 @@ public class JuegoActivity extends AppCompatActivity {
         int idPersonaje=intent.getIntExtra("personaje",0);
 
         // Crea e inserta el SurfaceView "Juego"
-        juego = new Juego(this);
+        juego = new Juego(this, idPersonaje);
         FrameLayout contenedor = new FrameLayout(this);
         contenedor.addView(juego);
         layoutPrincipal.addView(contenedor);
