@@ -357,6 +357,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     public void reproducirAudio(int idAudio) {
         MediaPlayer audio=MediaPlayer.create(getContext(), idAudio);
         if(audio != null) {
+            // Libera los recursos cuando termine el audio
+            audio.setOnCompletionListener(mp -> {
+                mp.release();
+            });
             audio.start();
         }
     }

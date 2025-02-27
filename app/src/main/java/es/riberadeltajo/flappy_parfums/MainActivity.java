@@ -133,6 +133,10 @@ public class MainActivity extends AppCompatActivity {
     public void reproducirAudio(int idAudio) {
         MediaPlayer audio=MediaPlayer.create(this, idAudio);
         if(audio != null) {
+            // Libera los recursos cuando termine el audio
+            audio.setOnCompletionListener(mp -> {
+                mp.release();
+            });
             audio.start();
         }
     }
