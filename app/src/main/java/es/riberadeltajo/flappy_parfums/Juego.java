@@ -79,13 +79,45 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private static final String KEY_BEST_SCORE = "mejorPuntuacion";
     private int bestScore = 0;
 
+    // === NUEVAS VARIABLES PARA DESEBLOQUEO ===
+    private int unlockLevel;             // Indica cuántos personajes están desbloqueados (0,1,2)
+    private int idPersonajeSeleccionado; // Guardamos qué personaje se ha elegido
+
     public Juego(Context context, int idPersonaje) {
         super(context);
         getHolder().addCallback(this);
         setZOrderOnTop(true);
         getHolder().setFormat(PixelFormat.TRANSPARENT);
 
-        establecerPersonaje(idPersonaje);
+        // 1) Leemos el unlockLevel de SharedPreferences
+        SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        unlockLevel = sp.getInt("unlockLevel", 0);
+
+        // 2) Guardamos el personaje que se ha seleccionado
+        this.idPersonajeSeleccionado = idPersonaje;
+
+        // 3) Establecemos frames del personaje
+        establecerPersonaje(idPersonajeSeleccionado);
+
+        // 4) Según el personaje y el unlockLevel, ajustamos el maxTuberias
+        if (idPersonajeSeleccionado == R.drawable.personaje_phantom) {
+            // Fase Phantom: si unlockLevel=0, meta=15; si ya está desbloqueado (>=1), sin límite
+            if (unlockLevel == 0) {
+                maxTuberias = 15;
+            } else {
+                maxTuberias = 999999; // sin límite
+            }
+        } else if (idPersonajeSeleccionado == R.drawable.personaje_azzaro) {
+            // Fase Azzaro: si unlockLevel=1, meta=20; si unlockLevel=2, sin límite
+            if (unlockLevel == 1) {
+                maxTuberias = 20;
+            } else {
+                maxTuberias = 999999;
+            }
+        } else if (idPersonajeSeleccionado == R.drawable.personaje_stronger) {
+            // Fase Stronger: sin límite
+            maxTuberias = 999999;
+        }
 
         // Escalar frames del personaje
         for (int i = 0; i < framesPersonaje.length; i++) {
@@ -137,6 +169,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger3);
             framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger4);
         } else {
+            // Por defecto Phantom
             framesPersonaje = new Bitmap[4];
             framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom1);
             framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom2);
@@ -319,7 +352,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 // Dibujar botón de menú debajo del mensaje
                 float menuMarginWin = 30f; // margen entre el mensaje y el botón
                 float menuX = (getWidth() - menuBitmap.getWidth()) / 2f;
-                float menuY = y + 100f + menuMarginWin; // 100f: altura aproximada del mensaje
+                float menuY = y + 100f + menuMarginWin;
                 canvas.drawBitmap(menuBitmap, menuX, menuY, null);
             } else {
                 // Rama de derrota: dibujar recuadro, puntuación actual, bestScore y los botones restart y menú
@@ -439,9 +472,27 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 if (invisibilidadTuberiasRestantes > 0) {
                     invisibilidadTuberiasRestantes--;
                 }
+
+                // Comprobamos si alcanzamos la meta
                 if (score >= maxTuberias) {
                     gano = true;
                     gameOver = true;
+
+                    // === Aquí actualizamos el unlockLevel si corresponde ===
+                    SharedPreferences sp2 = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                    int currentUnlock = sp2.getInt("unlockLevel", 0);
+
+                    if (currentUnlock == 0 && idPersonajeSeleccionado == R.drawable.personaje_phantom) {
+                        // Pasamos de 0 a 1 (desbloqueamos Azzaro)
+                        SharedPreferences.Editor editor = sp2.edit();
+                        editor.putInt("unlockLevel", 1);
+                        editor.apply();
+                    } else if (currentUnlock == 1 && idPersonajeSeleccionado == R.drawable.personaje_azzaro) {
+                        // Pasamos de 1 a 2 (desbloqueamos Stronger)
+                        SharedPreferences.Editor editor = sp2.edit();
+                        editor.putInt("unlockLevel", 2);
+                        editor.apply();
+                    }
                 }
                 break;
             }
@@ -467,7 +518,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                     float mensajeWidth = paint.measureText("¡Ganaste!");
                     float mensajeX = (getWidth() - mensajeWidth) / 2f;
                     float mensajeY = (getHeight() / 2f) - ((paint.descent() + paint.ascent()) / 2f);
-                    // Ubicar el botón de menú debajo del mensaje
+
                     float menuX = (getWidth() - menuBitmap.getWidth()) / 2f;
                     float menuY = mensajeY + 100f + menuMarginWin;
                     Rect menuRect = new Rect(
