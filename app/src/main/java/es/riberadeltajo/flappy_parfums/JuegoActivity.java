@@ -49,7 +49,6 @@ public class JuegoActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
     }
 
     // Mostrar la transición también al volver a la MainActivity
