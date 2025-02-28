@@ -3,6 +3,7 @@ package es.riberadeltajo.flappy_parfums;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -140,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 personajeElegido=R.drawable.personaje_azzaro;
                 animarColonia(personajeElegido);
+
+                quitarFondo(dialogView, imgenAzzaro);
             }
         });
         layoutStronger.setOnClickListener(new View.OnClickListener() {
@@ -147,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 personajeElegido=R.drawable.personaje_stronger;
                 animarColonia(personajeElegido);
+
+                quitarFondo(dialogView, imagenStronger);
             }
         });
         layoutPhantom.setOnClickListener(new View.OnClickListener() {
@@ -154,10 +159,24 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 personajeElegido=R.drawable.personaje_phantom;
                 animarColonia(personajeElegido);
+
+                quitarFondo(dialogView, imagenPhantom);
             }
         });
 
         dialog.show();
     }
 
+    // Método para deselecionar todas las colonias y quitar el efecto fondo
+    private void quitarFondo(View dialogView, ImageView imagenAzzaroSeleccionada) {
+        ImageView imagenPhantom=dialogView.findViewById(R.id.imagenPhantom);
+        ImageView imagenStronger=dialogView.findViewById(R.id.imagenStronger);
+        ImageView imagenAzzaro=dialogView.findViewById(R.id.imagenAzzaro);
+
+        imagenPhantom.setBackgroundColor(Color.TRANSPARENT);
+        imagenAzzaro.setBackgroundColor(Color.TRANSPARENT);
+        imagenStronger.setBackgroundColor(Color.TRANSPARENT);
+
+        imagenAzzaroSeleccionada.setBackgroundColor(Color.parseColor("#C7C286"));
+    }
 }
