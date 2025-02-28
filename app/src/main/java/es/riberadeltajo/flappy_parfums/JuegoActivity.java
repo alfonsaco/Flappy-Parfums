@@ -25,7 +25,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class JuegoActivity extends AppCompatActivity {
 
-    private Button btnReset;
     private Juego juego;
 
     @Override
@@ -50,7 +49,6 @@ public class JuegoActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
     }
 
     // Mostrar la transición también al volver a la MainActivity
@@ -59,6 +57,4 @@ public class JuegoActivity extends AppCompatActivity {
         super.finish();
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     }
-
-
 }

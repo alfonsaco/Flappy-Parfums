@@ -2,7 +2,10 @@ package es.riberadeltajo.flappy_parfums;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -25,6 +28,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private BucleJuego bucle;
     // Personaje
     private Bitmap[] framesPersonaje;
+    private Bitmap gameOverBitmap;
+    private Bitmap dialogoScoreBitmap; // Recuadro de score (para cuando se pierde)
+    private Bitmap restartBitmap;      // Botón de reinicio (restart.png)
+    private Bitmap menuBitmap;         // Botón para ir al menú (menu.png)
+
     private int frameIndex = 0;
     private long ultimoCambioFrame = 0;
     private final int DURACION_FRAME = 100;
@@ -33,7 +41,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private final float GRAVEDAD = 3f;
     private final float SALTO = -30;
     private int score = 0;
-    private int maxTuberias = 15; // Número máximo de tuberías para ganar
+    private int maxTuberias = 15;
     private boolean gano = false;
 
     // Suelo
@@ -51,21 +59,29 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private int personajeAlto;
     private Rect rectPersonaje;
 
-    // Variables para el power-up
+    // Power-up
     private int totalTuberiasGeneradas = 0;
-    private int invisibilidadTuberiasRestantes = 0; // Tuberías con invisibilidad activa
+    private int invisibilidadTuberiasRestantes = 0;
 
-    // Variables de estado del juego
-    // gameStarted se activa con el primer click; el suelo se mueve desde el inicio, salvo cuando muere.
+    // Estado del juego
     private boolean gameStarted = false;
-    // Para que el sonido de muerte se reproduzca solo una vez.
     private boolean deathSoundPlayed = false;
 
-    // Imagen que se mostrará al inicio
+    // Imagen de inicio
     private Bitmap imagenHola;
 
-    // Variable para almacenar el AnimatorSet de la animación de "volar"
+    // Animación "volar"
     private AnimatorSet animSet;
+
+    // SharedPreferences para la mejor puntuación
+    private SharedPreferences prefs;
+    private static final String PREFS_NAME = "MisPuntuaciones";
+    private static final String KEY_BEST_SCORE = "mejorPuntuacion";
+    private int bestScore = 0;
+
+    // === NUEVAS VARIABLES PARA DESEBLOQUEO ===
+    private int unlockLevel;             // Indica cuántos personajes están desbloqueados (0,1,2)
+    private int idPersonajeSeleccionado; // Guardamos qué personaje se ha elegido
 
     public Juego(Context context, int idPersonaje) {
         super(context);
@@ -73,51 +89,87 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         setZOrderOnTop(true);
         getHolder().setFormat(PixelFormat.TRANSPARENT);
 
-        establecerPersonaje(idPersonaje);
+        // 1) Leemos el unlockLevel de SharedPreferences
+        SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        unlockLevel = sp.getInt("unlockLevel", 0);
 
-        // Escalar los frames del personaje
+        // 2) Guardamos el personaje que se ha seleccionado
+        this.idPersonajeSeleccionado = idPersonaje;
+
+        // 3) Establecemos frames del personaje
+        establecerPersonaje(idPersonajeSeleccionado);
+
+        // 4) Según el personaje y el unlockLevel, ajustamos el maxTuberias
+        if (idPersonajeSeleccionado == R.drawable.personaje_phantom) {
+            // Fase Phantom: si unlockLevel=0, meta=15; si ya está desbloqueado (>=1), sin límite
+            if (unlockLevel == 0) {
+                maxTuberias = 15;
+            } else {
+                maxTuberias = 999999; // sin límite
+            }
+        } else if (idPersonajeSeleccionado == R.drawable.personaje_azzaro) {
+            // Fase Azzaro: si unlockLevel=1, meta=20; si unlockLevel=2, sin límite
+            if (unlockLevel == 1) {
+                maxTuberias = 20;
+            } else {
+                maxTuberias = 999999;
+            }
+        } else if (idPersonajeSeleccionado == R.drawable.personaje_stronger) {
+            // Fase Stronger: sin límite
+            maxTuberias = 999999;
+        }
+
+        // Escalar frames del personaje
         for (int i = 0; i < framesPersonaje.length; i++) {
             framesPersonaje[i] = Bitmap.createScaledBitmap(
                     framesPersonaje[i],
                     framesPersonaje[i].getWidth() / 13,
                     framesPersonaje[i].getHeight() / 13,
-                    true);
+                    true
+            );
         }
         personajeAncho = framesPersonaje[0].getWidth();
         personajeAlto = framesPersonaje[0].getHeight();
 
         suelo = BitmapFactory.decodeResource(getResources(), R.drawable.suelo);
-        // La posición vertical se ajustará en surfaceCreated
         posPersonajeY = 0;
 
         tuberias = new ArrayList<>();
         rectPersonaje = new Rect();
 
         imagenHola = BitmapFactory.decodeResource(getResources(), R.drawable.message);
+
+        gameOverBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gameover);
+        dialogoScoreBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.dialogo_score);
+        restartBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.restart);
+        menuBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.menu);
+
+        prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        bestScore = prefs.getInt(KEY_BEST_SCORE, 0);
     }
 
-    // Función para establecer el personaje según el id
     private void establecerPersonaje(int idPersonaje) {
-        if(idPersonaje == R.drawable.personaje_phantom) {
+        if (idPersonaje == R.drawable.personaje_phantom) {
             framesPersonaje = new Bitmap[4];
             framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom1);
             framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom2);
             framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom3);
             framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom4);
-        } else if(idPersonaje == R.drawable.personaje_azzaro) {
+        } else if (idPersonaje == R.drawable.personaje_azzaro) {
             framesPersonaje = new Bitmap[5];
             framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro1);
             framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro2);
             framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro3);
             framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro4);
             framesPersonaje[4] = BitmapFactory.decodeResource(getResources(), R.drawable.azzaro5);
-        } else if(idPersonaje == R.drawable.personaje_stronger) {
+        } else if (idPersonaje == R.drawable.personaje_stronger) {
             framesPersonaje = new Bitmap[4];
             framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger1);
             framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger2);
             framesPersonaje[2] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger3);
             framesPersonaje[3] = BitmapFactory.decodeResource(getResources(), R.drawable.stronger4);
         } else {
+            // Por defecto Phantom
             framesPersonaje = new Bitmap[4];
             framesPersonaje[0] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom1);
             framesPersonaje[1] = BitmapFactory.decodeResource(getResources(), R.drawable.phantom2);
@@ -126,20 +178,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    // Getters y Setters para la propiedad que animaremos
-    public float getPosPersonajeY() {
-        return posPersonajeY;
-    }
-    public void setPosPersonajeY(float pos) {
-        this.posPersonajeY = pos;
-    }
-
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         int pantallaAncho = getWidth();
         int pantallaAlto = getHeight();
-
-        // Escalar el suelo
         int anchoOriginal = suelo.getWidth();
         int altoOriginal = suelo.getHeight();
         float factorEscala = (float) pantallaAncho / anchoOriginal;
@@ -149,12 +191,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         sueloY = pantallaAlto - suelo.getHeight();
         posSuelo1 = 0;
         posSuelo2 = suelo.getWidth();
-
-        // Posicionar al personaje en el centro vertical desde el inicio
         posPersonajeY = (pantallaAlto - personajeAlto) / 2f;
 
-        // Inicia una animación cíclica para darle efecto de "volar" en espera
         animSet = new AnimatorSet();
+        @SuppressLint("ObjectAnimatorBinding")
         ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
         volar.setDuration(400);
         volar.setRepeatCount(ObjectAnimator.INFINITE);
@@ -183,7 +223,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void actualizar() {
-        // Actualizamos el movimiento del suelo solo si el juego no ha terminado
         if (!gameOver) {
             posSuelo1 -= velSuelo;
             posSuelo2 -= velSuelo;
@@ -195,7 +234,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        // Si el juego no ha empezado, solo actualizamos los frames
         if (!gameStarted) {
             long ahora = System.currentTimeMillis();
             if (ahora - ultimoCambioFrame >= DURACION_FRAME) {
@@ -205,16 +243,14 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
-        // Si el juego ha terminado, reproducimos el sonido de muerte solo una vez
         if (gameOver) {
-            if (!deathSoundPlayed) {
+            if (!gano && !deathSoundPlayed) {
                 reproducirAudio(R.raw.morir);
                 deathSoundPlayed = true;
             }
             return;
         }
 
-        // Actualizar física del personaje
         velY += GRAVEDAD;
         posPersonajeY += velY;
 
@@ -224,7 +260,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             ultimoCambioFrame = ahora;
         }
 
-        // Límites del personaje
         if (posPersonajeY <= 0) {
             posPersonajeY = 0;
             gameOver = true;
@@ -235,12 +270,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             gameOver = true;
         }
 
-        // Actualizar rectángulo del personaje (posición fija en X)
         float personajeX = 100;
         rectPersonaje.set((int) personajeX, (int) posPersonajeY,
                 (int) (personajeX + personajeAncho), (int) (posPersonajeY + personajeAlto));
 
-        // Procesar tuberías y colisiones
         generarTuberias();
         actualizarTuberias();
         chequearColisiones();
@@ -257,32 +290,34 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         if (canvas == null) return;
         canvas.drawColor(0, PorterDuff.Mode.CLEAR);
 
-        // Si el juego no ha empezado, mostramos el estado de espera con la imagen
         if (!gameStarted) {
             float personajeX = 100;
             Bitmap frameActual = framesPersonaje[frameIndex];
             canvas.drawBitmap(frameActual, personajeX, posPersonajeY, null);
+
             float holaX = (getWidth() - imagenHola.getWidth()) / 2f;
             float holaY = (getHeight() - imagenHola.getHeight()) / 2f;
             canvas.drawBitmap(imagenHola, holaX, holaY, null);
+
             renderizarSuelo(canvas);
             return;
         }
 
-        // Renderizado normal del juego
         float personajeX = 100;
-        Paint paint = new Paint();
         for (Tuberia t : tuberias) {
             t.dibujar(canvas);
         }
         renderizarSuelo(canvas);
 
-        Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.numbers);
-        paint.setTypeface(typeface);
-        paint.setColor(Color.WHITE);
-        paint.setTextSize(120);
-        paint.setShadowLayer(1, 10, 10, Color.BLACK);
-        canvas.drawText("" + score, 500, 350, paint);
+        if (!gameOver) {
+            Paint paint = new Paint();
+            Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.numbers);
+            paint.setTypeface(typeface);
+            paint.setColor(Color.WHITE);
+            paint.setTextSize(120);
+            paint.setShadowLayer(1, 10, 10, Color.BLACK);
+            canvas.drawText("" + score, 500, 350, paint);
+        }
 
         Bitmap frameActual = framesPersonaje[frameIndex];
         Paint personajePaint = new Paint();
@@ -293,9 +328,87 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
         canvas.drawBitmap(frameActual, personajeX, posPersonajeY, personajePaint);
 
-        if (gameOver && gano) {
-            paint.setTextSize(100);
-            canvas.drawText("¡Ganaste!", getWidth() / 2 - 150, getHeight() / 2, paint);
+        if (gameOver) {
+            // Actualizamos bestScore siempre (tanto si se gana como si se pierde)
+            if (score > bestScore) {
+                bestScore = score;
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putInt(KEY_BEST_SCORE, bestScore);
+                editor.apply();
+            }
+            if (gano) {
+                // Rama de victoria: dibujar mensaje y, debajo, el botón de menú
+                Paint paint = new Paint();
+                paint.setColor(Color.WHITE);
+                paint.setTextSize(100);
+                paint.setShadowLayer(1, 10, 10, Color.BLACK);
+                paint.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
+                String mensaje = "¡Ganaste!";
+                float textWidth = paint.measureText(mensaje);
+                float x = (getWidth() - textWidth) / 2f;
+                float y = (getHeight() / 2f) - ((paint.descent() + paint.ascent()) / 2f);
+                canvas.drawText(mensaje, x, y, paint);
+
+                // Dibujar botón de menú debajo del mensaje
+                float menuMarginWin = 30f; // margen entre el mensaje y el botón
+                float menuX = (getWidth() - menuBitmap.getWidth()) / 2f;
+                float menuY = y + 100f + menuMarginWin;
+                canvas.drawBitmap(menuBitmap, menuX, menuY, null);
+            } else {
+                // Rama de derrota: dibujar recuadro, puntuación actual, bestScore y los botones restart y menú
+                float margenEntreImagenes = 20f;
+                float alturaTotal = gameOverBitmap.getHeight() + margenEntreImagenes + dialogoScoreBitmap.getHeight();
+                float bloqueY = (getHeight() - alturaTotal) / 2f - 100f;
+                float gameOverX = (getWidth() - gameOverBitmap.getWidth()) / 2f;
+                canvas.drawBitmap(gameOverBitmap, gameOverX, bloqueY, null);
+                float dialogoX = (getWidth() - dialogoScoreBitmap.getWidth()) / 2f;
+                float dialogoY = bloqueY + gameOverBitmap.getHeight() + margenEntreImagenes;
+                canvas.drawBitmap(dialogoScoreBitmap, dialogoX, dialogoY, null);
+
+                Paint paintScore = new Paint();
+                paintScore.setColor(Color.WHITE);
+                paintScore.setTextSize(55);
+                paintScore.setShadowLayer(1, 4, 4, Color.BLACK);
+                paintScore.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
+                String finalScore = String.valueOf(score);
+                float offsetXScore = 500f;
+                float offsetYScore = 110f;
+                float scoreCenterX = dialogoX + offsetXScore;
+                float scoreCenterY = dialogoY + offsetYScore;
+                float textWidthScore = paintScore.measureText(finalScore);
+                float textXScore = scoreCenterX - (textWidthScore / 2f);
+                float textYScore = scoreCenterY - ((paintScore.descent() + paintScore.ascent()) / 2f);
+                canvas.drawText(finalScore, textXScore, textYScore, paintScore);
+
+                Paint paintBest = new Paint();
+                paintBest.setColor(Color.WHITE);
+                paintBest.setTextSize(55);
+                paintBest.setShadowLayer(1, 4, 4, Color.BLACK);
+                paintBest.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
+                String finalBest = String.valueOf(bestScore);
+                float offsetXBest = 500f;
+                float offsetYBest = 230f;
+                float bestCenterX = dialogoX + offsetXBest;
+                float bestCenterY = dialogoY + offsetYBest;
+                float textWidthBest = paintBest.measureText(finalBest);
+                float textXBest = bestCenterX - (textWidthBest / 2f);
+                float textYBest = bestCenterY - ((paintBest.descent() + paintBest.ascent()) / 2f);
+                canvas.drawText(finalBest, textXBest, textYBest, paintBest);
+
+                // Dibujar el botón de reinicio (restart.png)
+                float offsetRestart = 30f;
+                float verticalOffset = 50f;
+                float restartX = dialogoX + (dialogoScoreBitmap.getWidth() - restartBitmap.getWidth()) / 2f - offsetRestart;
+                float restartY = dialogoY + (dialogoScoreBitmap.getHeight() - restartBitmap.getHeight()) / 2f - verticalOffset;
+                canvas.drawBitmap(restartBitmap, restartX, restartY, null);
+
+                // Dibujar el botón "ir al menú" debajo del de reinicio
+                float menuMargin = 20f;
+                float offsetMenu = 30f;
+                float menuX = dialogoX + (dialogoScoreBitmap.getWidth() - menuBitmap.getWidth()) / 2f - offsetMenu;
+                float menuY = restartY + restartBitmap.getHeight() + menuMargin;
+                canvas.drawBitmap(menuBitmap, menuX, menuY, null);
+            }
         }
     }
 
@@ -359,9 +472,27 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 if (invisibilidadTuberiasRestantes > 0) {
                     invisibilidadTuberiasRestantes--;
                 }
+
+                // Comprobamos si alcanzamos la meta
                 if (score >= maxTuberias) {
                     gano = true;
                     gameOver = true;
+
+                    // === Aquí actualizamos el unlockLevel si corresponde ===
+                    SharedPreferences sp2 = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                    int currentUnlock = sp2.getInt("unlockLevel", 0);
+
+                    if (currentUnlock == 0 && idPersonajeSeleccionado == R.drawable.personaje_phantom) {
+                        // Pasamos de 0 a 1 (desbloqueamos Azzaro)
+                        SharedPreferences.Editor editor = sp2.edit();
+                        editor.putInt("unlockLevel", 1);
+                        editor.apply();
+                    } else if (currentUnlock == 1 && idPersonajeSeleccionado == R.drawable.personaje_azzaro) {
+                        // Pasamos de 1 a 2 (desbloqueamos Stronger)
+                        SharedPreferences.Editor editor = sp2.edit();
+                        editor.putInt("unlockLevel", 2);
+                        editor.apply();
+                    }
                 }
                 break;
             }
@@ -373,19 +504,90 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawBitmap(suelo, posSuelo2, sueloY, null);
     }
 
-    // El primer click inicia el juego y actúa como salto; posteriormente, cada toque hace saltar
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (!gameStarted) {
+            if (gameOver) {
+                // Si se ganó, solo se activa el botón de menú
+                if (gano) {
+                    float menuMarginWin = 30f;
+                    Paint paint = new Paint();
+                    paint.setTextSize(100);
+                    paint.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
+                    float mensajeWidth = paint.measureText("¡Ganaste!");
+                    float mensajeX = (getWidth() - mensajeWidth) / 2f;
+                    float mensajeY = (getHeight() / 2f) - ((paint.descent() + paint.ascent()) / 2f);
+
+                    float menuX = (getWidth() - menuBitmap.getWidth()) / 2f;
+                    float menuY = mensajeY + 100f + menuMarginWin;
+                    Rect menuRect = new Rect(
+                            (int) menuX,
+                            (int) menuY,
+                            (int) (menuX + menuBitmap.getWidth()),
+                            (int) (menuY + menuBitmap.getHeight())
+                    );
+                    float touchX = event.getX();
+                    float touchY = event.getY();
+                    if (menuRect.contains((int) touchX, (int) touchY)) {
+                        Intent intent = new Intent(getContext(), MainActivity.class);
+                        getContext().startActivity(intent);
+                        ((android.app.Activity)getContext()).finish();
+                        return true;
+                    }
+                    return true;
+                }
+                // Si se perdió, comprobar ambos botones: restart y menú
+                else {
+                    float margenEntreImagenes = 20f;
+                    float alturaTotal = gameOverBitmap.getHeight() + margenEntreImagenes + dialogoScoreBitmap.getHeight();
+                    float bloqueY = (getHeight() - alturaTotal) / 2f - 100f;
+                    float dialogoX = (getWidth() - dialogoScoreBitmap.getWidth()) / 2f;
+                    float dialogoY = bloqueY + gameOverBitmap.getHeight() + margenEntreImagenes;
+
+                    float offsetRestart = 30f;
+                    float verticalOffset = 50f;
+                    float restartX = dialogoX + (dialogoScoreBitmap.getWidth() - restartBitmap.getWidth()) / 2f - offsetRestart;
+                    float restartY = dialogoY + (dialogoScoreBitmap.getHeight() - restartBitmap.getHeight()) / 2f - verticalOffset;
+                    Rect restartRect = new Rect(
+                            (int) restartX,
+                            (int) restartY,
+                            (int) (restartX + restartBitmap.getWidth()),
+                            (int) (restartY + restartBitmap.getHeight())
+                    );
+
+                    float menuMargin = 20f;
+                    float offsetMenu = 30f;
+                    float menuX = dialogoX + (dialogoScoreBitmap.getWidth() - menuBitmap.getWidth()) / 2f - offsetMenu;
+                    float menuY = restartY + restartBitmap.getHeight() + menuMargin;
+                    Rect menuRect = new Rect(
+                            (int) menuX,
+                            (int) menuY,
+                            (int) (menuX + menuBitmap.getWidth()),
+                            (int) (menuY + menuBitmap.getHeight())
+                    );
+
+                    float touchX = event.getX();
+                    float touchY = event.getY();
+                    if (restartRect.contains((int) touchX, (int) touchY)) {
+                        reiniciarPartida();
+                        return true;
+                    } else if (menuRect.contains((int) touchX, (int) touchY)) {
+                        Intent intent = new Intent(getContext(), MainActivity.class);
+                        getContext().startActivity(intent);
+                        ((android.app.Activity)getContext()).finish();
+                        return true;
+                    }
+                    return true;
+                }
+            } else if (!gameStarted) {
                 gameStarted = true;
-                // Paramos la animación de volar una vez que se haya dado el primer Click
                 if (animSet != null && animSet.isRunning()) {
                     animSet.cancel();
                 }
                 velY = SALTO;
                 reproducirAudio(R.raw.spray);
-            } else if (!gameOver) {
+            } else {
                 velY = SALTO;
                 reproducirAudio(R.raw.spray);
             }
@@ -394,10 +596,36 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         return super.onTouchEvent(event);
     }
 
+    private void reiniciarPartida() {
+        score = 0;
+        gano = false;
+        gameOver = false;
+        gameStarted = false;
+        deathSoundPlayed = false;
+        totalTuberiasGeneradas = 0;
+        invisibilidadTuberiasRestantes = 0;
+        tuberias.clear();
+
+        posPersonajeY = (getHeight() - personajeAlto) / 2f;
+        velY = 0;
+
+        if (animSet != null) {
+            animSet.cancel();
+        }
+        animSet = new AnimatorSet();
+        @SuppressLint("ObjectAnimatorBinding")
+        ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
+        volar.setDuration(400);
+        volar.setRepeatCount(ObjectAnimator.INFINITE);
+        volar.setRepeatMode(ObjectAnimator.REVERSE);
+        animSet.play(volar);
+        animSet.start();
+    }
+
     public void reproducirAudio(int idAudio) {
         MediaPlayer audio = MediaPlayer.create(getContext(), idAudio);
         if (audio != null) {
-            audio.setOnCompletionListener(mp -> mp.release());
+            audio.setOnCompletionListener(MediaPlayer::release);
             audio.start();
         }
     }
