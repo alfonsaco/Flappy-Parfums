@@ -6,11 +6,14 @@ import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -21,10 +24,6 @@ public class MainActivity extends AppCompatActivity {
     // boton de prueba
     private ImageView btnJugar;
     private ImageView btnPersonaje;
-
-    private Button btnAzzaro;
-    private Button btnStronger;
-    private Button btnPhantom;
 
     int personajeElegido=R.drawable.personaje_phantom;
 
@@ -37,32 +36,8 @@ public class MainActivity extends AppCompatActivity {
         btnJugar=findViewById(R.id.btnJugar);
         btnPersonaje=findViewById(R.id.btnPersonaje);
 
-        btnAzzaro=findViewById(R.id.btnAzzaro);
-        btnStronger=findViewById(R.id.btnStronger);
-        btnPhantom=findViewById(R.id.btnPhantom);
-
-        btnAzzaro.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                personajeElegido=R.drawable.personaje_azzaro;
-                animarColonia(personajeElegido);
-            }
-        });
-        btnStronger.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                personajeElegido=R.drawable.personaje_stronger;
-                animarColonia(personajeElegido);
-            }
-        });
-        btnPhantom.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                personajeElegido=R.drawable.personaje_phantom;
-                animarColonia(personajeElegido);
-            }
-        });
-
+        // Canción menú
+        reproducirAudio(R.raw.menu_theme1);
 
         btnJugar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
                 // Animación botón
                 animarBoton(btnPersonaje);
                 reproducirAudio(R.raw.start);
+
+                mostrarDialogoPersonajes();
             }
         });
 
@@ -140,4 +117,47 @@ public class MainActivity extends AppCompatActivity {
             audio.start();
         }
     }
+
+    private void mostrarDialogoPersonajes(){
+        // Construir el diálogo
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.seleccion_personaje, null);
+        builder.setView(dialogView);
+
+        final AlertDialog dialog = builder.create();
+
+        ImageView imagenPhantom=dialogView.findViewById(R.id.imagenPhantom);
+        ImageView imgenAzzaro=dialogView.findViewById(R.id.imagenAzzaro);
+        ImageView imagenStronger=dialogView.findViewById(R.id.imagenStronger);
+
+        LinearLayout layoutPhantom=dialogView.findViewById(R.id.personajePhantomElegido);
+        LinearLayout layoutAzzaro=dialogView.findViewById(R.id.personajeAzzaroElegido);
+        LinearLayout layoutStronger=dialogView.findViewById(R.id.personajeStrongerElegido);
+
+        layoutAzzaro.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                personajeElegido=R.drawable.personaje_azzaro;
+                animarColonia(personajeElegido);
+            }
+        });
+        layoutStronger.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                personajeElegido=R.drawable.personaje_stronger;
+                animarColonia(personajeElegido);
+            }
+        });
+        layoutPhantom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                personajeElegido=R.drawable.personaje_phantom;
+                animarColonia(personajeElegido);
+            }
+        });
+
+        dialog.show();
+    }
+
 }
