@@ -51,9 +51,6 @@ public class MainActivity extends AppCompatActivity {
         btnPersonaje = findViewById(R.id.btnPersonaje);
         personaje = findViewById(R.id.imgPersonaje);
 
-        // Canción menú
-        reproducirAudio(R.raw.menu_theme1);
-
         btnJugar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
