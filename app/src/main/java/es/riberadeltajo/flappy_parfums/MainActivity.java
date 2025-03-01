@@ -6,10 +6,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.GradientDrawable;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -165,9 +168,20 @@ public class MainActivity extends AppCompatActivity {
             layoutStronger.setAlpha(0.5f);
         }
 
+        // Verificar cual es el personaje que ya está seleccionado por defecto, para que,
+        // cuando se abra el diálgoo, salga ya con el fondo cambiado
+        if(personajeElegido == R.drawable.personaje_phantom) {
+            quitarFondo(dialogView, imagenPhantom);
+        } else if(personajeElegido == R.drawable.personaje_stronger) {
+            quitarFondo(dialogView, imagenStronger);
+        } else if(personajeElegido == R.drawable.personaje_azzaro) {
+            quitarFondo(dialogView, imagenAzzaro);
+        }
+
         layoutPhantom.setOnClickListener(v -> {
             personajeElegido = R.drawable.personaje_phantom;
             animarColonia(personajeElegido);
+            reproducirAudio(R.raw.swich);
             quitarFondo(dialogView, imagenPhantom);
         });
 
@@ -175,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
             if (unlockLevel >= 1) {
                 personajeElegido = R.drawable.personaje_azzaro;
                 animarColonia(personajeElegido);
+                reproducirAudio(R.raw.swich);
                 quitarFondo(dialogView, imagenAzzaro);
             }
         });
@@ -183,11 +198,26 @@ public class MainActivity extends AppCompatActivity {
             if (unlockLevel >= 2) {
                 personajeElegido = R.drawable.personaje_stronger;
                 animarColonia(personajeElegido);
+                reproducirAudio(R.raw.swich);
                 quitarFondo(dialogView, imagenStronger);
             }
         });
 
         dialog.show();
+        int width = (int)(getResources().getDisplayMetrics().density * 300);
+        int height = (int)(getResources().getDisplayMetrics().density * 420);
+        dialog.getWindow().setLayout(width, height);
+
+        // Botón para cerrar el diálogo
+        ImageView btnOK=dialogView.findViewById(R.id.btnOK);
+
+        btnOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                reproducirAudio(R.raw.tap);
+                dialog.dismiss();
+            }
+        });
     }
 
     // Método para deseleccionar todas las colonias y poner el efecto solo en la elegida
@@ -200,7 +230,10 @@ public class MainActivity extends AppCompatActivity {
         imagenAzzaro.setBackgroundColor(Color.TRANSPARENT);
         imagenStronger.setBackgroundColor(Color.TRANSPARENT);
 
-        imagenSeleccionada.setBackgroundColor(Color.parseColor("#C7C286"));
+        GradientDrawable drawable=new GradientDrawable();
+        drawable.setColor(Color.parseColor("#C7C286"));
+        drawable.setStroke(10, Color.parseColor("#ada86c"));
+        imagenSeleccionada.setBackground(drawable);
     }
 
     // Mostrar la transición también al volver
