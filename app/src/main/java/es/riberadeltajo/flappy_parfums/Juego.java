@@ -151,15 +151,22 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         int newHeightOver = (int)(gameOverBitmap.getHeight() * scaleOver);
         gameOverBitmap = Bitmap.createScaledBitmap(gameOverBitmap, newWidthOver, newHeightOver, true);
 
-        // Escalar el botón de START
+        // Escalar el diálogo de puntos
         // Esto es el 40% de su tamaño original
+        float scaleFactorDialog = 1.25f;
+        int newWidthDialog = (int)(dialogoScoreBitmap.getWidth() * scaleFactorDialog);
+        int newHeightDialog = (int)(dialogoScoreBitmap.getHeight() * scaleFactorDialog);
+        dialogoScoreBitmap = Bitmap.createScaledBitmap(dialogoScoreBitmap, newWidthDialog, newHeightDialog, true);
+
+        // Escalar el botón de START
+        // Esto es el 30% de su tamaño original
         float scaleFactor = 0.3f;
         int newWidth = (int)(menuBitmap.getWidth() * scaleFactor);
         int newHeight = (int)(menuBitmap.getHeight() * scaleFactor);
         menuBitmap = Bitmap.createScaledBitmap(menuBitmap, newWidth, newHeight, true);
 
         // Escalar el botón de RESTART
-        // Esto es el 40% de su tamaño original
+        // Esto es el 30% de su tamaño original
         float scaleFactorRestart = 0.3f;
         int newWidthRestart = (int)(restartBitmap.getWidth() * scaleFactorRestart);
         int newHeightRestart = (int)(restartBitmap.getHeight() * scaleFactorRestart);
@@ -167,6 +174,14 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
         prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         bestScore = prefs.getInt(KEY_BEST_SCORE, 0);
+    }
+
+    // Getters y Setters para la propiedad que animaremos
+    public float getPosPersonajeY() {
+        return posPersonajeY;
+    }
+    public void setPosPersonajeY(float pos) {
+        this.posPersonajeY = pos;
     }
 
     private void establecerPersonaje(int idPersonaje) {
@@ -215,7 +230,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         posPersonajeY = (pantallaAlto - personajeAlto) / 2f;
 
         animSet = new AnimatorSet();
-        @SuppressLint("ObjectAnimatorBinding")
         ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
         volar.setDuration(400);
         volar.setRepeatCount(ObjectAnimator.INFINITE);
@@ -336,19 +350,32 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.numbers);
             paint.setTypeface(typeface);
             paint.setTextSize(120);
+
+            // POSICIONAR LOS PUNTOS JUSTO EN EL CENTRO DE LA PANTALLA
+            // Preparar el texto a mostrar
+            String scoreText = String.valueOf(score);
+
+            // Calcular el ancho del texto
+            float textWidth = paint.measureText(scoreText);
+
+            // Calcular la posición central horizontal
+            float centerX = getWidth() / 2f;
+            float textX = centerX - textWidth / 2f;
+
             // Configurar sombra
             paint.setShadowLayer(1, 10, 10, Color.BLACK);
 
-            // Dibujar trazo (stroke)
+            // Dibujar el trazo (stroke)
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(12);
             paint.setColor(Color.BLACK);
-            canvas.drawText("" + score, 500, 350, paint);
+            canvas.drawText(scoreText, textX, 300, paint);
 
-            // Dibujar relleno (fill)
+            // Dibujar el relleno (fill)
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(Color.WHITE);
-            canvas.drawText("" + score, 500, 350, paint);
+            canvas.drawText(scoreText, textX, 300, paint);
+
         }
 
         Bitmap frameActual = framesPersonaje[frameIndex];
@@ -396,7 +423,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 canvas.drawBitmap(gameOverBitmap, gameOverX, bloqueY, null);
 
                 float dialogoX = (getWidth() - dialogoScoreBitmap.getWidth()) / 2f;
-                float dialogoY = bloqueY + gameOverBitmap.getHeight() + margenEntreImagenes;
+                // El +30 se pone para que no esté tan pegado al texto de Game Over
+                float dialogoY = bloqueY + gameOverBitmap.getHeight() + margenEntreImagenes + 40;
                 canvas.drawBitmap(dialogoScoreBitmap, dialogoX, dialogoY, null);
 
                 // DIBUJAR PUNTOS PARTIDA

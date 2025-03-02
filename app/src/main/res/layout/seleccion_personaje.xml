@@ -44,7 +44,7 @@
                 android:shadowColor="#000"
                 android:shadowDx="0"
                 android:shadowDy="7"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:text="PHANTOM"
                 android:textColor="#FFF"
                 android:textSize="20sp" />
@@ -76,7 +76,7 @@
                 android:shadowColor="#000"
                 android:shadowDx="0"
                 android:shadowDy="7"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:text="AZZARO"
                 android:textColor="#FFF"
                 android:textSize="20sp" />
@@ -108,7 +108,7 @@
                 android:shadowColor="#000"
                 android:shadowDx="0"
                 android:shadowDy="7"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:text="STRONGER"
                 android:textColor="#FFF"
                 android:textSize="20sp" />
