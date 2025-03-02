@@ -176,6 +176,14 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         bestScore = prefs.getInt(KEY_BEST_SCORE, 0);
     }
 
+    // Getters y Setters para la propiedad que animaremos
+    public float getPosPersonajeY() {
+        return posPersonajeY;
+    }
+    public void setPosPersonajeY(float pos) {
+        this.posPersonajeY = pos;
+    }
+
     private void establecerPersonaje(int idPersonaje) {
         if (idPersonaje == R.drawable.personaje_phantom) {
             framesPersonaje = new Bitmap[4];
@@ -222,7 +230,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         posPersonajeY = (pantallaAlto - personajeAlto) / 2f;
 
         animSet = new AnimatorSet();
-        @SuppressLint("ObjectAnimatorBinding")
         ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
         volar.setDuration(400);
         volar.setRepeatCount(ObjectAnimator.INFINITE);
