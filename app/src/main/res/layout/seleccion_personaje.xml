@@ -8,15 +8,15 @@
     android:background="@drawable/background_personajes">
 
     <GridLayout
-        android:layout_width="391dp"
-        android:layout_height="wrap_content"
+        android:id="@+id/gridLayout"
+        android:layout_width="273dp"
+        android:layout_height="321dp"
         android:columnCount="2"
-        android:rowCount="2"
         android:padding="20dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:rowCount="2"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:id="@+id/personajePhantomElegido"
@@ -24,30 +24,30 @@
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:orientation="vertical"
-            android:padding="5dp">
+            android:padding="2dp">
 
             <ImageView
                 android:id="@+id/imagenPhantom"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
-                android:rotation="-90"
                 android:layout_gravity="center"
-                app:srcCompat="@drawable/phantom1" />
+                android:rotation="-90"
+                android:src="@drawable/phantom1" />
 
             <TextView
                 android:id="@+id/txtPhantom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:fontFamily="@font/upheavtt"
                 android:layout_marginTop="5dp"
-                android:textColor="#FFF"
-                android:textSize="20sp"
-                android:shadowRadius="3"
+                android:fontFamily="@font/upheavtt"
+                android:shadowColor="#000"
                 android:shadowDx="0"
                 android:shadowDy="7"
-                android:shadowColor="#000"
-                android:text="PHANTOM" />
+                android:shadowRadius="2"
+                android:text="PHANTOM"
+                android:textColor="#FFF"
+                android:textSize="20sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:orientation="vertical"
-            android:padding="5dp">
+            android:padding="2dp">
 
             <ImageView
                 android:id="@+id/imagenAzzaro"
@@ -64,22 +64,22 @@
                 android:layout_height="110dp"
                 android:layout_gravity="center"
                 android:rotation="-90"
-                app:srcCompat="@drawable/azzaro1" />
+                android:src="@drawable/azzaro1" />
 
             <TextView
                 android:id="@+id/txtAzzaro"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:fontFamily="@font/upheavtt"
                 android:layout_marginTop="5dp"
-                android:textColor="#FFF"
-                android:textSize="20sp"
-                android:shadowRadius="3"
+                android:fontFamily="@font/upheavtt"
+                android:shadowColor="#000"
                 android:shadowDx="0"
                 android:shadowDy="7"
-                android:shadowColor="#000"
-                android:text="AZZARO" />
+                android:shadowRadius="2"
+                android:text="AZZARO"
+                android:textColor="#FFF"
+                android:textSize="20sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -88,7 +88,7 @@
             android:layout_height="match_parent"
             android:layout_columnWeight="1"
             android:orientation="vertical"
-            android:padding="5dp">
+            android:padding="2dp">
 
             <ImageView
                 android:id="@+id/imagenStronger"
@@ -96,25 +96,35 @@
                 android:layout_height="110dp"
                 android:layout_gravity="center"
                 android:rotation="-90"
-                app:srcCompat="@drawable/stronger1" />
+                android:src="@drawable/stronger1" />
 
             <TextView
                 android:id="@+id/txtStronger"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:fontFamily="@font/upheavtt"
                 android:layout_marginTop="5dp"
-                android:textColor="#FFF"
-                android:textSize="20sp"
-                android:shadowRadius="3"
+                android:fontFamily="@font/upheavtt"
+                android:shadowColor="#000"
                 android:shadowDx="0"
                 android:shadowDy="7"
-                android:shadowColor="#000"
-                android:text="STRONGER" />
+                android:shadowRadius="2"
+                android:text="STRONGER"
+                android:textColor="#FFF"
+                android:textSize="20sp" />
         </LinearLayout>
 
-
-        <!-- Celda vacía para completar la cuadrícula -->
     </GridLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ImageView
+        android:id="@+id/btnOK"
+        android:layout_width="125dp"
+        android:layout_height="39dp"
+        android:layout_marginBottom="30dp"
+        android:src="@drawable/ok"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/gridLayout"
+        app:layout_constraintStart_toStartOf="@+id/gridLayout"
+        app:layout_constraintTop_toBottomOf="@+id/gridLayout" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

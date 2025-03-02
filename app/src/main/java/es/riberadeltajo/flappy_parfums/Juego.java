@@ -144,8 +144,44 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         restartBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.restart);
         menuBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.menu);
 
+        // Escalar el mensaje de Gameover
+        // Esto es el 40% de su tamaño original
+        float scaleOver = 0.9f;
+        int newWidthOver = (int)(gameOverBitmap.getWidth() * scaleOver);
+        int newHeightOver = (int)(gameOverBitmap.getHeight() * scaleOver);
+        gameOverBitmap = Bitmap.createScaledBitmap(gameOverBitmap, newWidthOver, newHeightOver, true);
+
+        // Escalar el diálogo de puntos
+        // Esto es el 40% de su tamaño original
+        float scaleFactorDialog = 1.25f;
+        int newWidthDialog = (int)(dialogoScoreBitmap.getWidth() * scaleFactorDialog);
+        int newHeightDialog = (int)(dialogoScoreBitmap.getHeight() * scaleFactorDialog);
+        dialogoScoreBitmap = Bitmap.createScaledBitmap(dialogoScoreBitmap, newWidthDialog, newHeightDialog, true);
+
+        // Escalar el botón de START
+        // Esto es el 30% de su tamaño original
+        float scaleFactor = 0.3f;
+        int newWidth = (int)(menuBitmap.getWidth() * scaleFactor);
+        int newHeight = (int)(menuBitmap.getHeight() * scaleFactor);
+        menuBitmap = Bitmap.createScaledBitmap(menuBitmap, newWidth, newHeight, true);
+
+        // Escalar el botón de RESTART
+        // Esto es el 30% de su tamaño original
+        float scaleFactorRestart = 0.3f;
+        int newWidthRestart = (int)(restartBitmap.getWidth() * scaleFactorRestart);
+        int newHeightRestart = (int)(restartBitmap.getHeight() * scaleFactorRestart);
+        restartBitmap = Bitmap.createScaledBitmap(restartBitmap, newWidthRestart, newHeightRestart, true);
+
         prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         bestScore = prefs.getInt(KEY_BEST_SCORE, 0);
+    }
+
+    // Getters y Setters para la propiedad que animaremos
+    public float getPosPersonajeY() {
+        return posPersonajeY;
+    }
+    public void setPosPersonajeY(float pos) {
+        this.posPersonajeY = pos;
     }
 
     private void establecerPersonaje(int idPersonaje) {
@@ -194,7 +230,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         posPersonajeY = (pantallaAlto - personajeAlto) / 2f;
 
         animSet = new AnimatorSet();
-        @SuppressLint("ObjectAnimatorBinding")
         ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
         volar.setDuration(400);
         volar.setRepeatCount(ObjectAnimator.INFINITE);
@@ -304,7 +339,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         float personajeX = 100;
-        for (Tuberia t : tuberias) {
+        // Iterar sobre una copia de la lista para evitar ConcurrentModificationException
+        for (Tuberia t : new ArrayList<>(tuberias)) {
             t.dibujar(canvas);
         }
         renderizarSuelo(canvas);
@@ -313,10 +349,33 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             Paint paint = new Paint();
             Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.numbers);
             paint.setTypeface(typeface);
-            paint.setColor(Color.WHITE);
             paint.setTextSize(120);
+
+            // POSICIONAR LOS PUNTOS JUSTO EN EL CENTRO DE LA PANTALLA
+            // Preparar el texto a mostrar
+            String scoreText = String.valueOf(score);
+
+            // Calcular el ancho del texto
+            float textWidth = paint.measureText(scoreText);
+
+            // Calcular la posición central horizontal
+            float centerX = getWidth() / 2f;
+            float textX = centerX - textWidth / 2f;
+
+            // Configurar sombra
             paint.setShadowLayer(1, 10, 10, Color.BLACK);
-            canvas.drawText("" + score, 500, 350, paint);
+
+            // Dibujar el trazo (stroke)
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(12);
+            paint.setColor(Color.BLACK);
+            canvas.drawText(scoreText, textX, 300, paint);
+
+            // Dibujar el relleno (fill)
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(Color.WHITE);
+            canvas.drawText(scoreText, textX, 300, paint);
+
         }
 
         Bitmap frameActual = framesPersonaje[frameIndex];
@@ -337,39 +396,41 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 editor.apply();
             }
             if (gano) {
-                // Rama de victoria: dibujar mensaje y, debajo, el botón de menú
+                // Rama de victoria: dibujar mensaje y botón de menú
                 Paint paint = new Paint();
                 paint.setColor(Color.WHITE);
                 paint.setTextSize(100);
                 paint.setShadowLayer(1, 10, 10, Color.BLACK);
                 paint.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
+
                 String mensaje = "¡Ganaste!";
                 float textWidth = paint.measureText(mensaje);
                 float x = (getWidth() - textWidth) / 2f;
                 float y = (getHeight() / 2f) - ((paint.descent() + paint.ascent()) / 2f);
                 canvas.drawText(mensaje, x, y, paint);
 
-                // Dibujar botón de menú debajo del mensaje
-                float menuMarginWin = 30f; // margen entre el mensaje y el botón
+                float menuMarginWin = 30f;
                 float menuX = (getWidth() - menuBitmap.getWidth()) / 2f;
                 float menuY = y + 100f + menuMarginWin;
                 canvas.drawBitmap(menuBitmap, menuX, menuY, null);
+
             } else {
-                // Rama de derrota: dibujar recuadro, puntuación actual, bestScore y los botones restart y menú
+                // Rama de derrota: dibujar recuadro, puntuación y botones
                 float margenEntreImagenes = 20f;
                 float alturaTotal = gameOverBitmap.getHeight() + margenEntreImagenes + dialogoScoreBitmap.getHeight();
                 float bloqueY = (getHeight() - alturaTotal) / 2f - 100f;
                 float gameOverX = (getWidth() - gameOverBitmap.getWidth()) / 2f;
                 canvas.drawBitmap(gameOverBitmap, gameOverX, bloqueY, null);
+
                 float dialogoX = (getWidth() - dialogoScoreBitmap.getWidth()) / 2f;
-                float dialogoY = bloqueY + gameOverBitmap.getHeight() + margenEntreImagenes;
+                // El +30 se pone para que no esté tan pegado al texto de Game Over
+                float dialogoY = bloqueY + gameOverBitmap.getHeight() + margenEntreImagenes + 40;
                 canvas.drawBitmap(dialogoScoreBitmap, dialogoX, dialogoY, null);
 
+                // DIBUJAR PUNTOS PARTIDA
                 Paint paintScore = new Paint();
-                paintScore.setColor(Color.WHITE);
-                paintScore.setTextSize(55);
-                paintScore.setShadowLayer(1, 4, 4, Color.BLACK);
                 paintScore.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
+                paintScore.setTextSize(55);
                 String finalScore = String.valueOf(score);
                 float offsetXScore = 500f;
                 float offsetYScore = 110f;
@@ -378,13 +439,22 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 float textWidthScore = paintScore.measureText(finalScore);
                 float textXScore = scoreCenterX - (textWidthScore / 2f);
                 float textYScore = scoreCenterY - ((paintScore.descent() + paintScore.ascent()) / 2f);
+
+                // Dibujar trazo para los puntos de la partida
+                paintScore.setStyle(Paint.Style.STROKE);
+                paintScore.setStrokeWidth(12);
+                paintScore.setColor(Color.BLACK);
                 canvas.drawText(finalScore, textXScore, textYScore, paintScore);
 
+                // Dibujar relleno para los puntos de la partida
+                paintScore.setStyle(Paint.Style.FILL);
+                paintScore.setColor(Color.WHITE);
+                canvas.drawText(finalScore, textXScore, textYScore, paintScore);
+
+                // DIBUJAR PUNTOS MÁXIMOS (bestScore) con trazo
                 Paint paintBest = new Paint();
-                paintBest.setColor(Color.WHITE);
-                paintBest.setTextSize(55);
-                paintBest.setShadowLayer(1, 4, 4, Color.BLACK);
                 paintBest.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
+                paintBest.setTextSize(55);
                 String finalBest = String.valueOf(bestScore);
                 float offsetXBest = 500f;
                 float offsetYBest = 230f;
@@ -393,16 +463,27 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 float textWidthBest = paintBest.measureText(finalBest);
                 float textXBest = bestCenterX - (textWidthBest / 2f);
                 float textYBest = bestCenterY - ((paintBest.descent() + paintBest.ascent()) / 2f);
-                canvas.drawText(finalBest, textXBest, textYBest, paintBest);
 
-                // Dibujar el botón de reinicio (restart.png)
+                // Crear un paint para el trazo
+                Paint strokePaint = new Paint(paintBest);
+                strokePaint.setStyle(Paint.Style.STROKE);
+                strokePaint.setStrokeWidth(12);
+                strokePaint.setColor(Color.BLACK);
+                canvas.drawText(finalBest, textXBest, textYBest, strokePaint);
+
+                // Crear un paint para el relleno
+                Paint fillPaint = new Paint(paintBest);
+                fillPaint.setStyle(Paint.Style.FILL);
+                fillPaint.setColor(Color.WHITE);
+                canvas.drawText(finalBest, textXBest, textYBest, fillPaint);
+
+                // Dibujar botones restart y menú
                 float offsetRestart = 30f;
                 float verticalOffset = 50f;
                 float restartX = dialogoX + (dialogoScoreBitmap.getWidth() - restartBitmap.getWidth()) / 2f - offsetRestart;
                 float restartY = dialogoY + (dialogoScoreBitmap.getHeight() - restartBitmap.getHeight()) / 2f - verticalOffset;
                 canvas.drawBitmap(restartBitmap, restartX, restartY, null);
 
-                // Dibujar el botón "ir al menú" debajo del de reinicio
                 float menuMargin = 20f;
                 float offsetMenu = 30f;
                 float menuX = dialogoX + (dialogoScoreBitmap.getWidth() - menuBitmap.getWidth()) / 2f - offsetMenu;
