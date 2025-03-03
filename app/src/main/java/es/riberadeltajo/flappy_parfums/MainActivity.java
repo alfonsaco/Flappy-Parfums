@@ -36,6 +36,7 @@ public class    MainActivity extends AppCompatActivity {
 
     // SharedPreferences para el desbloqueo
     private SharedPreferences prefs;
+    private SharedPreferences.Editor editor;
     private static final String PREFS_NAME = "MisPuntuaciones";
     private static final String KEY_UNLOCK_LEVEL = "unlockLevel";
     private int unlockLevel;  // 0 -> solo Phantom, 1 -> Azzaro desbloqueado, 2 -> Stronger desbloqueado
@@ -49,6 +50,9 @@ public class    MainActivity extends AppCompatActivity {
         // Inicializamos las prefs
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         unlockLevel = prefs.getInt(KEY_UNLOCK_LEVEL, 0);
+
+        SharedPreferences sp = getSharedPreferences("MisPuntuaciones", MODE_PRIVATE);
+        personajeElegido = sp.getInt("personajeSeleccionado", R.drawable.personaje_phantom);
 
         btnJugar = findViewById(R.id.btnJugar);
         btnPersonaje = findViewById(R.id.btnPersonaje);
@@ -183,6 +187,7 @@ public class    MainActivity extends AppCompatActivity {
             animarColonia(personajeElegido);
             reproducirAudio(R.raw.swich);
             quitarFondo(dialogView, imagenPhantom);
+            guardarPersonajeSeleccionado(personajeElegido);
         });
 
         layoutAzzaro.setOnClickListener(v -> {
@@ -191,6 +196,7 @@ public class    MainActivity extends AppCompatActivity {
                 animarColonia(personajeElegido);
                 reproducirAudio(R.raw.swich);
                 quitarFondo(dialogView, imagenAzzaro);
+                guardarPersonajeSeleccionado(personajeElegido);
             }
         });
 
@@ -200,6 +206,7 @@ public class    MainActivity extends AppCompatActivity {
                 animarColonia(personajeElegido);
                 reproducirAudio(R.raw.swich);
                 quitarFondo(dialogView, imagenStronger);
+                guardarPersonajeSeleccionado(personajeElegido);
             }
         });
 
@@ -235,6 +242,15 @@ public class    MainActivity extends AppCompatActivity {
         drawable.setStroke(10, Color.parseColor("#ada86c"));
         imagenSeleccionada.setBackground(drawable);
     }
+
+    private void guardarPersonajeSeleccionado(int personajeId) {
+        SharedPreferences sp = getSharedPreferences("MisPuntuaciones", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt("personajeSeleccionado", personajeId);
+        editor.apply();
+    }
+
+
 
     // Mostrar la transición también al volver
     @Override

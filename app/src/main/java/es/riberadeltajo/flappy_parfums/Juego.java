@@ -93,11 +93,15 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         unlockLevel = sp.getInt("unlockLevel", 0);
 
-        // 2) Guardamos el personaje que se ha seleccionado
+        SharedPreferences preferences = context.getSharedPreferences("MisPuntuaciones", Context.MODE_PRIVATE);
         this.idPersonajeSeleccionado = idPersonaje;
 
-        // 3) Establecemos frames del personaje
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("personajeSeleccionado", idPersonajeSeleccionado);
+        editor.apply();
+
         establecerPersonaje(idPersonajeSeleccionado);
+
 
         // 4) Según el personaje y el unlockLevel, ajustamos el maxTuberias
         if (idPersonajeSeleccionado == R.drawable.personaje_phantom) {
@@ -143,6 +147,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         dialogoScoreBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.dialogo_score);
         restartBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.restart);
         menuBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.menu);
+        menuBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.menu);
 
         // Escalar el mensaje de Gameover
         // Esto es el 40% de su tamaño original
@@ -174,6 +179,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
         prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         bestScore = prefs.getInt(KEY_BEST_SCORE, 0);
+
+
     }
 
     // Getters y Setters para la propiedad que animaremos
