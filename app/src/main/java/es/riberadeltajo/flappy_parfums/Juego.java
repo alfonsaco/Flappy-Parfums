@@ -428,16 +428,18 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 canvas.drawBitmap(dialogoScoreBitmap, dialogoX, dialogoY, null);
 
                 // DIBUJAR PUNTOS PARTIDA
+                // DIBUJAR PUNTOS PARTIDA
                 Paint paintScore = new Paint();
                 paintScore.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
                 paintScore.setTextSize(55);
                 String finalScore = String.valueOf(score);
-                float offsetXScore = 500f;
-                float offsetYScore = 110f;
-                float scoreCenterX = dialogoX + offsetXScore;
-                float scoreCenterY = dialogoY + offsetYScore;
+
+                // Definimos un margen opcional (por ejemplo, 10 píxeles)
+                float margin = 80f;
                 float textWidthScore = paintScore.measureText(finalScore);
-                float textXScore = scoreCenterX - (textWidthScore / 2f);
+                float textXScore = (dialogoX + dialogoScoreBitmap.getWidth()) - textWidthScore - margin;
+                float offsetYScore = dialogoScoreBitmap.getHeight() * 0.37f;
+                float scoreCenterY = dialogoY + offsetYScore;
                 float textYScore = scoreCenterY - ((paintScore.descent() + paintScore.ascent()) / 2f);
 
                 // Dibujar trazo para los puntos de la partida
@@ -451,31 +453,32 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 paintScore.setColor(Color.WHITE);
                 canvas.drawText(finalScore, textXScore, textYScore, paintScore);
 
+
                 // DIBUJAR PUNTOS MÁXIMOS (bestScore) con trazo
                 Paint paintBest = new Paint();
                 paintBest.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
                 paintBest.setTextSize(55);
                 String finalBest = String.valueOf(bestScore);
-                float offsetXBest = 500f;
-                float offsetYBest = 230f;
-                float bestCenterX = dialogoX + offsetXBest;
-                float bestCenterY = dialogoY + offsetYBest;
-                float textWidthBest = paintBest.measureText(finalBest);
-                float textXBest = bestCenterX - (textWidthBest / 2f);
-                float textYBest = bestCenterY - ((paintBest.descent() + paintBest.ascent()) / 2f);
+
+                float textWidthScoreBest = paintScore.measureText(finalBest);
+                float marginBest = 80f;
+                float textXScoreBest = (dialogoX + dialogoScoreBitmap.getWidth()) - textWidthScoreBest - marginBest;
+                float offsetYScoreBest = dialogoScoreBitmap.getHeight() * 0.75f;
+                float bestCenterY = dialogoY + offsetYScoreBest;
+                float textYScoreBest = bestCenterY - ((paintBest.descent() + paintBest.ascent()) / 2f);
 
                 // Crear un paint para el trazo
                 Paint strokePaint = new Paint(paintBest);
                 strokePaint.setStyle(Paint.Style.STROKE);
                 strokePaint.setStrokeWidth(12);
                 strokePaint.setColor(Color.BLACK);
-                canvas.drawText(finalBest, textXBest, textYBest, strokePaint);
+                canvas.drawText(finalBest, textXScoreBest, textYScoreBest, strokePaint);
 
                 // Crear un paint para el relleno
                 Paint fillPaint = new Paint(paintBest);
                 fillPaint.setStyle(Paint.Style.FILL);
                 fillPaint.setColor(Color.WHITE);
-                canvas.drawText(finalBest, textXBest, textYBest, fillPaint);
+                canvas.drawText(finalBest, textXScoreBest, textYScoreBest, fillPaint);
 
                 // Dibujar botones restart y menú
                 float offsetRestart = 30f;
@@ -694,7 +697,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             animSet.cancel();
         }
         animSet = new AnimatorSet();
-        @SuppressLint("ObjectAnimatorBinding")
         ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
         volar.setDuration(400);
         volar.setRepeatCount(ObjectAnimator.INFINITE);
