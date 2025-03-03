@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/background_personajes">
+
+    <GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="273dp"
+        android:layout_height="321dp"
+        android:columnCount="2"
+        android:padding="20dp"
+        android:rowCount="2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:id="@+id/personajePhantomElegido"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:padding="2dp">
+
+            <ImageView
+                android:id="@+id/imagenPhantom"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_gravity="center"
+                android:rotation="-90"
+                android:src="@drawable/phantom1" />
+
+            <TextView
+                android:id="@+id/txtPhantom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/upheavtt"
+                android:shadowColor="#000"
+                android:shadowDx="0"
+                android:shadowDy="7"
+                android:shadowRadius="2"
+                android:text="PHANTOM"
+                android:textColor="#FFF"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/personajeAzzaroElegido"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:padding="2dp">
+
+            <ImageView
+                android:id="@+id/imagenAzzaro"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_gravity="center"
+                android:rotation="-90"
+                android:src="@drawable/azzaro1" />
+
+            <TextView
+                android:id="@+id/txtAzzaro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/upheavtt"
+                android:shadowColor="#000"
+                android:shadowDx="0"
+                android:shadowDy="7"
+                android:shadowRadius="2"
+                android:text="AZZARO"
+                android:textColor="#FFF"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/personajeStrongerElegido"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:padding="2dp">
+
+            <ImageView
+                android:id="@+id/imagenStronger"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_gravity="center"
+                android:rotation="-90"
+                android:src="@drawable/stronger1" />
+
+            <TextView
+                android:id="@+id/txtStronger"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/upheavtt"
+                android:shadowColor="#000"
+                android:shadowDx="0"
+                android:shadowDy="7"
+                android:shadowRadius="2"
+                android:text="STRONGER"
+                android:textColor="#FFF"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+    </GridLayout>
+
+    <ImageView
+        android:id="@+id/btnOK"
+        android:layout_width="125dp"
+        android:layout_height="39dp"
+        android:layout_marginBottom="30dp"
+        android:src="@drawable/ok"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/gridLayout"
+        app:layout_constraintStart_toStartOf="@+id/gridLayout"
+        app:layout_constraintTop_toBottomOf="@+id/gridLayout" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
