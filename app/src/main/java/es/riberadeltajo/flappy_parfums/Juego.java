@@ -33,6 +33,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private Bitmap restartBitmap;      // Botón de reinicio (restart.png)
     private Bitmap menuBitmap;         // Botón para ir al menú (menu.png)
 
+    //Variables para animar el personaje
     private int frameIndex = 0;
     private long ultimoCambioFrame = 0;
     private final int DURACION_FRAME = 100;
@@ -51,10 +52,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private final float velSuelo = 7f;
     private float sueloY;
 
+    //Variables para generar las tuberías
     private ArrayList<Tuberia> tuberias;
     private final float TIEMPO_ENTRE_TUBERIAS = 600f;
     private boolean gameOver = false;
 
+    //Dimensiones del persoanje
     private int personajeAncho;
     private int personajeAlto;
     private Rect rectPersonaje;
@@ -79,7 +82,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     private static final String KEY_BEST_SCORE = "mejorPuntuacion";
     private int bestScore = 0;
 
-    // === NUEVAS VARIABLES PARA DESEBLOQUEO ===
+    //Variables para el desbloqueo de los personajes
     private int unlockLevel;             // Indica cuántos personajes están desbloqueados (0,1,2)
     private int idPersonajeSeleccionado; // Guardamos qué personaje se ha elegido
 
@@ -89,21 +92,22 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         setZOrderOnTop(true);
         getHolder().setFormat(PixelFormat.TRANSPARENT);
 
-        // 1) Leemos el unlockLevel de SharedPreferences
+        //Cargar las preferencias del desbloqueo de los niveles
         SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         unlockLevel = sp.getInt("unlockLevel", 0);
-
         SharedPreferences preferences = context.getSharedPreferences("MisPuntuaciones", Context.MODE_PRIVATE);
         this.idPersonajeSeleccionado = idPersonaje;
 
+        //Cargar las preferencias del personaje seleccionado
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("personajeSeleccionado", idPersonajeSeleccionado);
         editor.apply();
 
+        //Establecer el personaje seleccionado
         establecerPersonaje(idPersonajeSeleccionado);
 
 
-        // 4) Según el personaje y el unlockLevel, ajustamos el maxTuberias
+        // Según el personaje y el unlockLevel, ajustamos el maxTuberias
         if (idPersonajeSeleccionado == R.drawable.personaje_phantom) {
             // Fase Phantom: si unlockLevel=0, meta=15; si ya está desbloqueado (>=1), sin límite
             if (unlockLevel == 0) {
@@ -143,6 +147,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
         imagenHola = BitmapFactory.decodeResource(getResources(), R.drawable.message);
 
+        //Cargar las imagenes
         gameOverBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gameover);
         dialogoScoreBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.dialogo_score);
         restartBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.restart);
@@ -191,6 +196,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         this.posPersonajeY = pos;
     }
 
+
+    //Metodo que establece los frames del personaje según el personaje seleccionado
     private void establecerPersonaje(int idPersonaje) {
         if (idPersonaje == R.drawable.personaje_phantom) {
             framesPersonaje = new Bitmap[4];
@@ -236,6 +243,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         posSuelo2 = suelo.getWidth();
         posPersonajeY = (pantallaAlto - personajeAlto) / 2f;
 
+
+        //Animacion de la pantalla inicial del personaje flotando
         animSet = new AnimatorSet();
         ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
         volar.setDuration(400);
@@ -244,6 +253,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         animSet.play(volar);
         animSet.start();
 
+        //Iniciar el bucle
         bucle = new BucleJuego(holder, this);
         bucle.setEnEjecucion(true);
         bucle.start();
@@ -264,18 +274,24 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
+
+    //Metodo que actualiza la lógica del juego
     public void actualizar() {
+        //Actualiza la posicion del suelo si el juego no ha terminado
         if (!gameOver) {
             posSuelo1 -= velSuelo;
             posSuelo2 -= velSuelo;
+            // Si el primer trozo del suelo sale completamente de la pantalla, lo reposiciona detrás del segundo
             if (posSuelo1 + suelo.getWidth() < 0) {
                 posSuelo1 = posSuelo2 + suelo.getWidth();
             }
+            // Si el segundo trozo del suelo sale completamente de la pantalla, lo reposiciona detrás del primero
             if (posSuelo2 + suelo.getWidth() < 0) {
                 posSuelo2 = posSuelo1 + suelo.getWidth();
             }
         }
 
+        //Si el juego no ha comenzado, solo se actualiza la animación del personaje
         if (!gameStarted) {
             long ahora = System.currentTimeMillis();
             if (ahora - ultimoCambioFrame >= DURACION_FRAME) {
@@ -285,6 +301,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
+        //Si el juego ha termiando, reproduce el sonido de muerte
         if (gameOver) {
             if (!gano && !deathSoundPlayed) {
                 reproducirAudio(R.raw.morir);
@@ -293,35 +310,47 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
+        //Aplica la gravedad al personaje y actualiza su posición vertical
         velY += GRAVEDAD;
         posPersonajeY += velY;
 
+        //Actualiza la animación del personaje
         long ahora = System.currentTimeMillis();
         if (ahora - ultimoCambioFrame >= DURACION_FRAME) {
             frameIndex = (frameIndex + 1) % framesPersonaje.length;
             ultimoCambioFrame = ahora;
         }
 
+        // Limita la posición del personaje para evitar que salga de los límites de la pantalla
         if (posPersonajeY <= 0) {
             posPersonajeY = 0;
             gameOver = true;
         }
+
+        // Calcula el límite inferior de la pantalla
         float limiteInferior = getHeight() - suelo.getHeight() - personajeAlto;
         if (posPersonajeY >= limiteInferior) {
             posPersonajeY = limiteInferior;
             gameOver = true;
         }
 
+        //Define las coordenadas del rectángulo que representa al personaje
         float personajeX = 100;
         rectPersonaje.set((int) personajeX, (int) posPersonajeY,
                 (int) (personajeX + personajeAncho), (int) (posPersonajeY + personajeAlto));
 
+        //Genera nuevas tuberias
         generarTuberias();
+        //Actualiza las tuberias existentes y elimina las que estan fuera de la pantalla
         actualizarTuberias();
+        //Comprueba si el personaje colisiona por alguna tubería
         chequearColisiones();
+        //Comprubea si el personaje recoge el power-up
         chequearPowerUp();
+        //Comprueba que el personaje haya pasado por una tubería y actualiza la puntuación
         chequearPasoTuberias();
 
+        //Actualiza cada tubería individualmente
         for (Tuberia t : tuberias) {
             t.setVelocidad(velSuelo);
             t.actualizar();
@@ -330,8 +359,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
     public void renderizar(Canvas canvas) {
         if (canvas == null) return;
+        //Limpia el lienzo antes de dibujar
         canvas.drawColor(0, PorterDuff.Mode.CLEAR);
 
+        //Si el juego no ha comenzado, dibuja la pantalla de inicio
         if (!gameStarted) {
             float personajeX = 100;
             Bitmap frameActual = framesPersonaje[frameIndex];
@@ -346,12 +377,13 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         float personajeX = 100;
-        // Iterar sobre una copia de la lista para evitar ConcurrentModificationException
+        //Itera sobre las tuberías y las dibuja en el lienzo
         for (Tuberia t : new ArrayList<>(tuberias)) {
             t.dibujar(canvas);
         }
         renderizarSuelo(canvas);
 
+        //Si el juego no ha terminado, muestra la puntuación actual
         if (!gameOver) {
             Paint paint = new Paint();
             Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.numbers);
@@ -385,6 +417,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
 
         }
 
+        //Dibuja al personaje con transparencia si tiene power-up activo
         Bitmap frameActual = framesPersonaje[frameIndex];
         Paint personajePaint = new Paint();
         if (invisibilidadTuberiasRestantes > 0) {
@@ -394,6 +427,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
         canvas.drawBitmap(frameActual, personajeX, posPersonajeY, personajePaint);
 
+        //Si el juego ha terminado, muestra el resultado final
         if (gameOver) {
             // Actualizamos bestScore siempre (tanto si se gana como si se pierde)
             if (score > bestScore) {
@@ -434,7 +468,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                 float dialogoY = bloqueY + gameOverBitmap.getHeight() + margenEntreImagenes + 40;
                 canvas.drawBitmap(dialogoScoreBitmap, dialogoX, dialogoY, null);
 
-                // DIBUJAR PUNTOS PARTIDA
+
                 // DIBUJAR PUNTOS PARTIDA
                 Paint paintScore = new Paint();
                 paintScore.setTypeface(ResourcesCompat.getFont(getContext(), R.font.numbers));
@@ -503,16 +537,23 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
+    //Metodo para generar las tuberías
     private void generarTuberias() {
+        //Si el jugador ha alcanzado el máximo número de tuberías permitidas , no generamos más
         if (score >= maxTuberias - 2) return;
         float anchoPantalla = getWidth();
+
+        //Si no hay ninguna tubería en la lista, creamos la primera
         if (tuberias.isEmpty()) {
             totalTuberiasGeneradas++;
             boolean esPowerUp = (totalTuberiasGeneradas == 10);
             tuberias.add(new Tuberia(getContext(), anchoPantalla + TIEMPO_ENTRE_TUBERIAS, sueloY, velSuelo, 350, esPowerUp));
             return;
         }
+
+        //Obtenemos la última tubería generada para calcular su posición
         Tuberia ultimaTuberia = tuberias.get(tuberias.size() - 1);
+        //Verificamos si la última tubería está lo suficientemente alejada del borde derecho de la pantalla
         if (ultimaTuberia.getX() + ultimaTuberia.getAncho() < anchoPantalla) {
             totalTuberiasGeneradas++;
             boolean esPowerUp = (totalTuberiasGeneradas == 10);
@@ -522,9 +563,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void actualizarTuberias() {
+        //Iteramos sobre las tuberías desde la última hasta la primera para evitar problemas al eliminar elementos
         for (int i = tuberias.size() - 1; i >= 0; i--) {
             Tuberia t = tuberias.get(i);
             t.actualizar();
+            //Si la tubería está fuera de la pantalla, la eliminamos de la lista
             if (t.fueraDePantalla()) {
                 tuberias.remove(i);
             }
@@ -532,8 +575,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void chequearColisiones() {
+        //Si el personaje tiene activado un power-up de invisibilidad, no se comprueban colisiones
         if (invisibilidadTuberiasRestantes > 0) return;
+        //Iteramos sobre todas las tuberías para detectar colisiones con el personaje
         for (Tuberia t : tuberias) {
+            //Comprobamos si hay colisión entre el personaje y la tubería
             if (t.colisionaCon(rectPersonaje)) {
                 if (!gameOver) {
                     gameOver = true;
@@ -544,7 +590,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void chequearPowerUp() {
+        //Iteramos sobre todas las tuberías para verificar si el personaje recoge un power-up
         for (Tuberia t : tuberias) {
+            //Verificamos si la tubería tiene un power-up, este no ha sido recolectado previamente,
+            //y si el rectángulo del personaje intersecta con el rectángulo del power-up
             if (t.hasPowerUp() && !t.isPowerUpCollected() && Rect.intersects(rectPersonaje, t.getRectPowerUp())) {
                 t.setPowerUpCollected(true);
                 invisibilidadTuberiasRestantes = 4;
@@ -556,10 +605,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         float personajeX = 100;
         for (Tuberia t : tuberias) {
             float tuberiaXFinal = t.getX() + t.getAncho();
+            //Verificamos si la tubería no ha sido marcada como "punto sumado" y si ha pasado completamente al personaje
             if (!t.isPuntoSumado() && tuberiaXFinal < personajeX) {
                 score++;
                 t.setPuntoSumado(true);
                 reproducirAudio(R.raw.point);
+                //Si el power-up de invisibilidad está activo, reducimos su duración
                 if (invisibilidadTuberiasRestantes > 0) {
                     invisibilidadTuberiasRestantes--;
                 }
@@ -569,7 +620,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
                     gano = true;
                     gameOver = true;
 
-                    // === Aquí actualizamos el unlockLevel si corresponde ===
+                    //Aquí actualizamos el unlockLevel si corresponde
                     SharedPreferences sp2 = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
                     int currentUnlock = sp2.getInt("unlockLevel", 0);
 
@@ -591,6 +642,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void renderizarSuelo(Canvas canvas) {
+        //Dibuja los trozos del suelo
         canvas.drawBitmap(suelo, posSuelo1, sueloY, null);
         canvas.drawBitmap(suelo, posSuelo2, sueloY, null);
     }
@@ -688,6 +740,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void reiniciarPartida() {
+        //Restablecemos los parametros como en el inicio
         score = 0;
         gano = false;
         gameOver = false;
@@ -703,6 +756,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
         if (animSet != null) {
             animSet.cancel();
         }
+        //Creamos una nueva animación para hacer que el personaje "vuela" en el lugar
         animSet = new AnimatorSet();
         ObjectAnimator volar = ObjectAnimator.ofFloat(this, "posPersonajeY", posPersonajeY - 40, posPersonajeY);
         volar.setDuration(400);
@@ -713,6 +767,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void reproducirAudio(int idAudio) {
+        //Se reproducen los sonidos
         MediaPlayer audio = MediaPlayer.create(getContext(), idAudio);
         if (audio != null) {
             audio.setOnCompletionListener(MediaPlayer::release);
