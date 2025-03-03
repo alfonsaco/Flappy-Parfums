@@ -11,7 +11,7 @@ import com.google.android.material.tabs.TabLayout;
 
 public class BucleJuego extends Thread {
 
-    private final static int MAX_FPS = 30;
+    private final static int MAX_FPS = 35;
     private final static int TIEMPO_FRAME = 1000 / MAX_FPS;
 
     private Juego juego;

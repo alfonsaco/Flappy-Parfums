@@ -36,11 +36,13 @@ public class JuegoActivity extends AppCompatActivity {
 
         ConstraintLayout layoutPrincipal = findViewById(R.id.main);
 
+        // Se obtiene el personaje elegido
         SharedPreferences sp = getSharedPreferences("MisPuntuaciones", MODE_PRIVATE);
         int personaje = sp.getInt("personajeSeleccionado", R.drawable.personaje_phantom);
 
 
-        // Crea e inserta el SurfaceView "Juego"
+        // Crea e inserta el SurfaceView "Juego". Se le pasa como parámetro el personaje, para
+        // poder utilizarlo en "Juego"
         juego = new Juego(this, personaje);
         FrameLayout contenedor = new FrameLayout(this);
         contenedor.addView(juego);
