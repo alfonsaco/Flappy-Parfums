@@ -39,7 +39,9 @@ public class    MainActivity extends AppCompatActivity {
     private SharedPreferences.Editor editor;
     private static final String PREFS_NAME = "MisPuntuaciones";
     private static final String KEY_UNLOCK_LEVEL = "unlockLevel";
-    private int unlockLevel;  // 0 -> solo Phantom, 1 -> Azzaro desbloqueado, 2 -> Stronger desbloqueado
+
+    // 0 -> Phantom, 1 -> Azzaro desbloqueado, 2 -> Stronger desbloqueado
+    private int unlockLevel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +60,7 @@ public class    MainActivity extends AppCompatActivity {
         btnPersonaje = findViewById(R.id.btnPersonaje);
         personaje = findViewById(R.id.imgPersonaje);
 
+        // Botón para iniciar juego
         btnJugar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,6 +77,7 @@ public class    MainActivity extends AppCompatActivity {
             }
         });
 
+        // Botón para abrir el diálogo de selección de personaje
         btnPersonaje.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,6 +97,8 @@ public class    MainActivity extends AppCompatActivity {
         });
     }
 
+    // Método para la animación de volar de la colonia, además de animar el personaje
+    // Se le pasa el id, que hace referencia a su XML
     private void animarColonia(int idPersonaje) {
         // Agregar frames del personaje
         AnimationDrawable animacionColonia;
@@ -117,6 +123,7 @@ public class    MainActivity extends AppCompatActivity {
         AnimatorSet set = new AnimatorSet();
         ObjectAnimator pulsarBoton = ObjectAnimator.ofFloat(idBoton, "translationY", 10, 0);
         pulsarBoton.setDuration(100);
+
         set.play(pulsarBoton);
         set.start();
     }
@@ -130,6 +137,7 @@ public class    MainActivity extends AppCompatActivity {
         }
     }
 
+    // Método para mostrar el diálogo de selección de personajes
     private void mostrarDialogoPersonajes(){
         // Construir el diálogo
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -182,6 +190,7 @@ public class    MainActivity extends AppCompatActivity {
             quitarFondo(dialogView, imagenAzzaro);
         }
 
+        // Eventos de Click de las 3 colonias en el diálogo
         layoutPhantom.setOnClickListener(v -> {
             personajeElegido = R.drawable.personaje_phantom;
             animarColonia(personajeElegido);
@@ -211,13 +220,13 @@ public class    MainActivity extends AppCompatActivity {
         });
 
         dialog.show();
+        // Se cambia el tamaño del diálogo
         int width = (int)(getResources().getDisplayMetrics().density * 300);
         int height = (int)(getResources().getDisplayMetrics().density * 420);
         dialog.getWindow().setLayout(width, height);
 
         // Botón para cerrar el diálogo
         ImageView btnOK=dialogView.findViewById(R.id.btnOK);
-
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -233,16 +242,19 @@ public class    MainActivity extends AppCompatActivity {
         ImageView imagenAzzaro   = dialogView.findViewById(R.id.imagenAzzaro);
         ImageView imagenStronger = dialogView.findViewById(R.id.imagenStronger);
 
+        // Quitamos el fondo a todas
         imagenPhantom.setBackgroundColor(Color.TRANSPARENT);
         imagenAzzaro.setBackgroundColor(Color.TRANSPARENT);
         imagenStronger.setBackgroundColor(Color.TRANSPARENT);
 
+        // Se añade el fondo con borde a la colonia que está seleccionada
         GradientDrawable drawable=new GradientDrawable();
         drawable.setColor(Color.parseColor("#C7C286"));
         drawable.setStroke(10, Color.parseColor("#ada86c"));
         imagenSeleccionada.setBackground(drawable);
     }
 
+    // Método para guardar el personaje que el usuario seleccionó al volver a la actividad
     private void guardarPersonajeSeleccionado(int personajeId) {
         SharedPreferences sp = getSharedPreferences("MisPuntuaciones", MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
@@ -250,9 +262,7 @@ public class    MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-
-
-    // Mostrar la transición también al volver
+    // Mostrar la transición también al volver a la actividad
     @Override
     public void finish () {
         super.finish();
