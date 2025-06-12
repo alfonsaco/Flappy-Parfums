@@ -24,9 +24,9 @@ A medida que el jugador acumula puntos, podrá desbloquear nuevos personajes ins
 - **Azzaro** – Se desbloquea al alcanzar 15 puntos
 - **Stronger** – Se desbloquea al alcanzar 20 puntos
 <div align="center">
-  <img src="http://github.com/alfonsaco/Flappy-Parfums/blob/master/media/gif_phantom.gif" alt="Phantom" width="100px">
+  <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/media/gif_phantom.gif" alt="Phantom" width="100px">
   <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/media/git_strong.gif" alt="Azzaro" width="100px">
-  <img src="http://github.com/alfonsaco/Flappy-Parfums/blob/master/media/gif_strong.gif" alt="Stronger" width="100px">
+  <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/media/gif_strong.gif" alt="Stronger" width="100px">
 </div>
 
   <br>
