@@ -6,12 +6,14 @@
 **Flappy Parfums** es un juego tipo Flappy Bird en el que los personajes tradicionales son reemplazados por perfumes icónicos. Desarrollado en Android Studio con Java, es un proyecto colaborativo con [@Josecp03](https://github.com/Josecp03) y [@guilleck](https://github.com/guilleck).
 
 
+
 ## 🛠️ Tecnologías Utilizadas
 El desarrollo de Flappy Parfums se llevó a cabo utilizando herramientas y tecnologías clave del ecosistema Android:
 - **Android Studio:** Entorno de desarrollo integrado (IDE) utilizado para construir y probar la aplicación.
 - **Java:** Lenguaje principal de programación utilizado para implementar la lógica del juego y el control de eventos.
 - **XML (Layouts de Android Studio):** Utilizado para definir la estructura visual de las interfaces de usuario.
 - **Git & GitHub:** Herramientas empleadas para el control de versiones y la colaboración entre desarrolladores.
+
 
 
 ## 🎯 Cómo Jugar
@@ -26,6 +28,8 @@ A medida que el jugador acumula puntos, podrá desbloquear nuevos personajes ins
   <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/app/src/main/res/drawable/azzaro1.png" alt="Azzaro" width="100px">
   <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/app/src/main/res/drawable/stronger1.png" alt="Stronger" width="100px">
 </div>
+
+
 
 ## 📱 Demostración del juego
 
