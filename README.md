@@ -7,6 +7,11 @@
 
 
 ## 🛠️ Tecnologías Utilizadas
+El desarrollo de Flappy Parfums se llevó a cabo utilizando herramientas y tecnologías clave del ecosistema Android:
+- **Android Studio:** Entorno de desarrollo integrado (IDE) utilizado para construir y probar la aplicación.
+- **Java:** Lenguaje principal de programación utilizado para implementar la lógica del juego y el control de eventos.
+- **XML (Layouts de Android Studio):** Utilizado para definir la estructura visual de las interfaces de usuario.
+- **Git & GitHub:** Herramientas empleadas para el control de versiones y la colaboración entre desarrolladores.
 
 
 ## 🎯 Cómo Jugar
