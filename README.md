@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/app/src/main/res/drawable/parfums.png" alt="Flappy Parfums" />
+  <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/app/src/main/res/drawable/parfums.png" alt="Flappy Parfums" width="300px" />
 </div>
 
 ## 🎮 Descripción
