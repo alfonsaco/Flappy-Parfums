@@ -3,7 +3,6 @@
 </div>
 
   <br>
-  
 ## 🎮 Descripción
 **Flappy Parfums** es un juego tipo Flappy Bird en el que los personajes tradicionales son reemplazados por perfumes icónicos. Desarrollado en Android Studio con Java, es un proyecto colaborativo con [@Josecp03](https://github.com/Josecp03) y [@guilleck](https://github.com/guilleck).
 
