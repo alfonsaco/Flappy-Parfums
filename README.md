@@ -28,6 +28,16 @@ A medida que el jugador acumula puntos, podrá desbloquear nuevos personajes ins
 </div>
 
   <br>
+
+## 🚀 Instalación
+### Requisitos
+Para poder probarlo, debes disponer de un dispositivo móvil Android *(FlappyParfums.apk)*.
+
+### Enlaces
+GitHub releases
+[Descargar desde GitHub releases](https://github.com/alfonsaco)
+
+  <br>
   
 ## 🛠️ Tecnologías Utilizadas
 El desarrollo de Flappy Parfums se llevó a cabo utilizando herramientas y tecnologías clave del ecosistema Android:
