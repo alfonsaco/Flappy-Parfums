@@ -26,7 +26,7 @@ A medida que el jugador acumula puntos, podrá desbloquear nuevos personajes ins
 <div align="center">
   <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/media/gif%20juego.gif" alt="Phantom" width="200px">
 </div>
-
+> ⚠️ *Nota:* Es posible que Android muestre un aviso de seguridad al tratarse de una instalación externa a Play Store. Esto es completamente normal.
   <br>
 
 ## 🚀 Descarga
