@@ -26,13 +26,14 @@ A medida que el jugador acumula puntos, podrá desbloquear nuevos personajes ins
 <div align="center">
   <img src="https://github.com/alfonsaco/Flappy-Parfums/blob/master/media/gif%20juego.gif" alt="Phantom" width="200px">
 </div>
-> ⚠️ *Nota:* Es posible que Android muestre un aviso de seguridad al tratarse de una instalación externa a Play Store. Esto es completamente normal.
+
   <br>
 
 ## 🚀 Descarga
 ### Requisitos
 Para poder probarlo, debes disponer de un dispositivo móvil Android. Descárgalo dentro a través de este enlace *(FlappyParfums.apk)*.
 - [Descargar desde GitHub releases](https://github.com/alfonsaco/Flappy-Parfums/releases/tag/1.0.0)
+> ⚠️ *Nota:* Es posible que Android muestre un aviso de seguridad al tratarse de una instalación externa a Play Store. Esto es completamente normal.
 
   <br>
   
